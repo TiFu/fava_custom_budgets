@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/fava_budgets/__init__.py
+src/fava_budgets/budget_plugin.py
+src/fava_budgets.egg-info/PKG-INFO
+src/fava_budgets.egg-info/SOURCES.txt
+src/fava_budgets.egg-info/dependency_links.txt
+src/fava_budgets.egg-info/requires.txt
+src/fava_budgets.egg-info/top_level.txt
