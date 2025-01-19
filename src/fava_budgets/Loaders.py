@@ -1,4 +1,8 @@
 from fava_budgets.Summary import CostSummary
+from fava.context import g
+from fava.helpers import FavaAPIError
+from beanquery.query import run_query  # type: ignore
+from collections import namedtuple
 
 class BudgetLoader:
 
@@ -28,7 +32,9 @@ class BudgetLoader:
                 year = entry.date.year
                 values = entry.values
                 account = entry.values[0].value
-                monthlyValues = { [i+1, x.value] for i, x in enumaret(entry.values[1:]) } #list(map(lambda x: x.value, entry.values[1:]))
+                monthlyValues = []
+                for i, x in enumerate(entry.values[1:]):
+                    monthlyValues.append([i+1, x.value])
 
                 entries.append({
                     "account": account,

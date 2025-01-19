@@ -6,6 +6,7 @@ from datetime import datetime
 
 from fava_budgets.BudgetReportServices import IncomeExpenseReportService
 
+from fava_budgets.Loaders import BudgetLoader, ActualsLoader
 class BudgetContext:
     pass
 
@@ -15,35 +16,58 @@ class BudgetFavaPlugin(FavaExtensionBase):
 
     custom_extension_type = ""
 
-    calculator = BudgetSummary()
-    actualsCalculator = ActualIncomeExpenseSummary()
-    incomeExpenseReportService = None
+    budgetLoader = BudgetLoader()
+    incomeActualsLoader = ActualsLoader("EUR", "Income")
+    expensesActualsLoader = ActualsLoader("EUR", "Expenses")
 
+    budgetReportService = None
+    budgetSummary = None
+    incomeSummary  = None
+    expensesSummary = None
 
     def after_load_file(self):
-        self.calculator.refresh(self.ledger)
-        self.actualsCalculator.calculateIncomeExpensesByMonth(self.ledger)
-        incExpBudget = self.calculator.getIncomeBudget()
-        actuals = self.actualsCalculator
-        self.incomeExpenseReportService = IncomeExpenseReportService(incExpBudget, self.actualsCalculator)
+        self.budgetSummary = self.budgetLoader.loadLedger(self.ledger)
+        self.incomeSummary = self.incomeActualsLoader.loadLedger(self.ledger)
+        self.expensesSummary = self.expensesActualsLoader.loadLedger(self.ledger)
 
+        self.budgetReportService = IncomeExpenseReportService(self.budgetSummary, self.incomeSummary, self.expensesSummary)
 
     @extension_endpoint("ytd_summary")
-    def getYtDBudgetSummary(self):
-        self.actualsCalculator.calculateIncomeExpensesByMonth(self.ledger)
-
-        month = datetime.now().month + 6
-        year = datetime.now().year - 1
-
-        return self.incomeExpenseReportService.getYtDSummary(year, month)
+    def getYtDSummary(self):
+        month = 12# datetime.now().month
+        year = 2024#datetime.now().year
+        
+        return self.budgetReportService.getYtDSummary(year, month)
 
 
-        # 
+    @extension_endpoint("ytd_breakdown")
+    def getYtDBreakdown(self):
+        month = 12# datetime.now().month
+        year = 2024 #datetime.now().year
+        
+        return self.budgetReportService.getYtDBreakdown(year, month)
+
+    def bootstrap(self):
+        return {
+            "ytd_summary": self.getYtDSummary(),
+            "ytd_breakdown": self.getYtDBreakdown(),
+            "budgets": self.getBudgets(),
+            "actuals": {
+                "income": self.getIncome(),
+                "expenses": self.getExpenses()
+            }
+        }
+
+
     @extension_endpoint("budget")
     def getBudgets(self):
-        return self.calculator.getIncomeBudget()
+        return self.budgetSummary.getSummary()
         
-    @extension_endpoint("actuals")
-    def getActuals(self):
-        self.actualsCalculator.calculateIncomeExpensesByMonth(self.ledger)
-        return self.actualsCalculator.output_dict
+    @extension_endpoint("actuals_income")
+    def getIncome(self):
+        return self.incomeSummary.getSummary()
+
+
+    @extension_endpoint("actuals_expenses")
+    def getExpenses(self):
+        return self.expensesSummary.getSummary()

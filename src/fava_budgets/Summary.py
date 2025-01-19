@@ -6,7 +6,10 @@ class CostSummary:
 
         self.incomeRoot = "Income"
         self.expensesRoot = "Expenses"
+        self._initializeDictionary(elements)
 
+    def getSummary(self):
+        return self.accumulatedBudget
 
     def _initializeDictionary(self, elements):
         # Step 1 - Load the initiail values
@@ -15,7 +18,7 @@ class CostSummary:
         for element in elements:
             acc = element["account"]
             year = element["year"]
-            values = elements["values"]
+            values = element["values"]
 
             if year < minYear:
                 minYear = year
@@ -25,13 +28,13 @@ class CostSummary:
             for i in range(len(values)):
                 month = values[i][0]
                 value = values[i][1]
-                self._setIfNotExists(self.budget, year, month, value)
+                self._setIfNotExists(self.budget, acc, year, month, value)
 
         # Step 2 fill in "gaps" across all accounts
         for account in self.budget.keys():
             for year in range(minYear, maxYear + 1):
                 for month in range(1, 12+1):
-                    self._setIfNotExists(self.budget, accountt, year, month, 0)
+                    self._setIfNotExists(self.budget, account, year, month, 0)
 
         # Step 3: Traverse the account hierarchy & set in the accumulated budget
         for account in self.budget.keys():
@@ -41,7 +44,7 @@ class CostSummary:
                     value = self.budget[account][year][month]
                     for i in range(1, len(parentAccounts)+1):
                         parentAccount = ":".join(parentAccounts[0:i])
-                        self._increase(self, dictionary, account, year, month, value)
+                        self._increase(self.accumulatedBudget, parentAccount, year, month, value)
 
     def _increase(self, dictionary, account, year, month, value):
         self._setIfNotExists(dictionary, account, year, month, 0)
@@ -56,33 +59,34 @@ class CostSummary:
             dictionary[account][year][month] = value
         
 
-    def getYtDSummary(self, year, month):
-        incomeSummary = 0
-        expenseSummary = 0
-        for i in range(1, month + 1):
-            incomeSummary += self.accumulatedBudget[self.incomeRoot][year][str(i)]
-            expenseSummary += self.accumulatedBudget[self.expensesRoot][year][str(i)]
+    def getValue(self, account, year, month):
+        if account not in self.accumulatedBudget:
+            raise FavaAPIError("Account " + str(account) + " not found in budget or actuals")
 
-        return {
-            "income": incomeSummary,
-            "expenses": expenseSummary,
-            "profit": incomeSummary - expenseSummary
-        }
+        if year not in self.accumulatedBudget[account]:
+            return 0
+        
+        if month not in self.accumulatedBudget[account][year]:
+            return 0
+
+        return self.accumulatedBudget[account][year][month]
+
+    def getYtDSummary(self, baseAccount, year, month):
+        value = 0
+
+        for i in range(1, month + 1):
+            value += self.getValue(baseAccount, year, i)
+
+        return value
 
     def getYtDBreakdown(self, year, month):
         output = {}
         for account in self.accumulatedBudget:
-            incomeSummary = 0
-            expenseSummary = 0
+            value = 0
             for i in range(1, month + 1):
-                incomeSummary += self.accumulatedBudget[self.incomeRoot][year][str(i)]
-                expenseSummary += self.accumulatedBudget[self.expensesRoot][year][str(i)]
+                value += self.getValue(account, year, i)
 
-            output[account] = {
-                "income": incomeSummary,
-                "expenses": expenseSummary,
-                "profit": incomeSummary - expenseSummary
-            }
+            output[account] = value
 
         return output
 
