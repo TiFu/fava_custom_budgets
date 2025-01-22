@@ -5,6 +5,7 @@ class BudgetAPIService {
     // TODO - fetch APIs & other data
 
     getBudgets(): Promise<Budget | null> {
+        console.log("Loading budgets...")
         return Promise.resolve(null)
     }
 }

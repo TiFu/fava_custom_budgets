@@ -9,11 +9,11 @@ class IncomeExpenseReportService:
         self.expensesSummary = expensesSummary
 
     def getYtDSummary(self, year, currentMonth):
-        incomeBudget = self.budgetSummary.getYtDSummary("Income", year, currentMonth)
+        incomeBudget = self.budgetSummary["Income"].getYtDSummary("Income", year, currentMonth)
         incomeNumbers = self.incomeSummary.getYtDSummary("Income", year, currentMonth)
         
         
-        expenseBudget = self.budgetSummary.getYtDSummary("Expenses", year, currentMonth)
+        expenseBudget = self.budgetSummary["Expenses"].getYtDSummary("Expenses", year, currentMonth)
         expensesNumbers = self.expensesSummary.getYtDSummary("Expenses", year, currentMonth)
 
         return {
@@ -35,17 +35,10 @@ class IncomeExpenseReportService:
 
 
     def getYtDBreakdown(self, year, currentMonth):
-        budget = self.budgetSummary.getYtDBreakdown(year, currentMonth)
+        incomeBudget = self.budgetSummary["Income"].getYtDBreakdown(year, currentMonth)
         incomeNumbers = self.incomeSummary.getYtDBreakdown(year, currentMonth)        
         expensesNumbers = self.expensesSummary.getYtDBreakdown(year, currentMonth)
-
-        incomeBudget = {} 
-        expenseBudget = {}
-        for account in budget.keys():
-            if account.startswith("Income"):
-                incomeBudget[account] = budget[account]
-            elif account.startswith("Expenses"):
-                expenseBudget[account] = budget[account]
+        expenseBudget = self.budgetSummary["Expenses"].getYtDBreakdown(year, currentMonth)
 
         return {
             "year": year,

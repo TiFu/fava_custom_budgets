@@ -1,0 +1,55 @@
+import { AccountMap, AnnualMap, ExpenseIncomeMap, Month, MonthMap } from "./model";
+
+const nFormat = new Intl.NumberFormat(undefined, {minimumFractionDigits: 0});
+
+export function formatMoney(money: number): string {
+    money = Math.round(money)
+    return nFormat.format(money)
+}
+
+// Account:Sub1:Sub2 => "    Sub2"
+export function formatWithTabs(account: string): string {
+    let split = account.split(":")
+    let level = split.length - 1
+
+    return "  ".repeat(level) + split[split.length - 1]; 
+}
+
+export function monthMapToArray(input: MonthMap) {
+    let output = []
+    for (let i = 1; i<= 12; i++) {
+        if (!input)
+            output.push(0)
+        else
+            output.push(Math.round((input as any)[i]))
+    }
+    return output
+}
+
+export function calculateAnnualSum(input: MonthMap) {
+    let sum = 0
+    for (let i = 1; i<= 12; i++) {
+        sum += (input as any)[i] 
+    }
+    return sum
+}
+
+export function extractYears(input: ExpenseIncomeMap) {
+    let years = new Set<string>()
+    _extractYears(input.Expenses, years)
+    _extractYears(input.Income, years)
+    let yearArray = Array.from(years)
+    yearArray.sort()
+    yearArray.reverse()
+    return yearArray
+}
+
+function _extractYears(accountMap: AccountMap, set: Set<string>) {
+    for (let account in accountMap) {
+        let annualMap = accountMap[account]
+        let accountExpenseYears = Object.keys(annualMap)
+        for (let year of accountExpenseYears) {
+            set.add(year)
+        }
+    }
+}

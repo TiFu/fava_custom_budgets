@@ -44,7 +44,13 @@ class BudgetLoader:
             else:
                 pass
 
-        return CostSummary(entries)
+        incomeEntries = list(filter(lambda x: x["account"].startswith("Income"), entries))
+        expenseEntries = list(filter(lambda x: x["account"].startswith("Expenses"), entries))
+
+        return {
+            "Income": CostSummary(incomeEntries),
+            "Expenses": CostSummary(expenseEntries)
+        }
 
 
 class ActualsLoader:

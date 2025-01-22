@@ -53,15 +53,18 @@ class BudgetFavaPlugin(FavaExtensionBase):
             "ytd_breakdown": self.getYtDBreakdown(),
             "budgets": self.getBudgets(),
             "actuals": {
-                "income": self.getIncome(),
-                "expenses": self.getExpenses()
+                "Income": self.getIncome(),
+                "Expenses": self.getExpenses()
             }
         }
 
 
     @extension_endpoint("budget")
     def getBudgets(self):
-        return self.budgetSummary.getSummary()
+        return {
+            "Income": self.budgetSummary["Income"].getSummary(),
+            "Expenses": self.budgetSummary["Expenses"].getSummary()
+        }
         
     @extension_endpoint("actuals_income")
     def getIncome(self):
