@@ -30,6 +30,9 @@ class CostSummary:
                 value = values[i][1]
                 self._setIfNotExists(self.budget, acc, year, month, value)
 
+        self.minYear = minYear
+        self.maxYear = maxYear
+        
         # Step 2 fill in "gaps" across all accounts
         for account in self.budget.keys():
             for year in range(minYear, maxYear + 1):

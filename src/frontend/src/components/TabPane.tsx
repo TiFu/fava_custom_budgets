@@ -18,13 +18,13 @@ class BudgetNavBar extends React.Component<ExpenseIncomeMapOverviewProps, {}> {
     onSelect={(selectedKey) => this.props.dispatch(selectedKey as string)}
   >
     <Nav.Item>
-      <Nav.Link eventKey="overview">Budget Overview</Nav.Link>
+      <Nav.Link eventKey="ytd">YTD</Nav.Link>
     </Nav.Item>
     <Nav.Item>
       <Nav.Link eventKey="annual">Annual summary</Nav.Link>
     </Nav.Item>
     <Nav.Item>
-      <Nav.Link eventKey="ytd">YTD</Nav.Link>
+      <Nav.Link eventKey="overview">Budget Overview</Nav.Link>
     </Nav.Item>
   </Nav>
   }

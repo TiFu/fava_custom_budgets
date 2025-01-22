@@ -49,8 +49,6 @@ class BudgetFavaPlugin(FavaExtensionBase):
 
     def bootstrap(self):
         return {
-            "ytd_summary": self.getYtDSummary(),
-            "ytd_breakdown": self.getYtDBreakdown(),
             "budgets": self.getBudgets(),
             "actuals": {
                 "Income": self.getIncome(),

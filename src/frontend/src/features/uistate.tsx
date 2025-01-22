@@ -6,7 +6,7 @@ interface UIState {
 }
 
 const initialState: UIState = {
-    selectedTab: "overview"
+    selectedTab: "ytd"
 }
 
 //export const fetchBudget = createAsyncThunk('budget/fetchBudget', async () => {

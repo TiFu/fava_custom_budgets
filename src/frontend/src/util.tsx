@@ -7,6 +7,7 @@ export function formatMoney(money: number): string {
     return nFormat.format(money)
 }
 
+export type MonthType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 // Account:Sub1:Sub2 => "    Sub2"
 export function formatWithTabs(account: string): string {
     let split = account.split(":")
@@ -15,9 +16,9 @@ export function formatWithTabs(account: string): string {
     return "  ".repeat(level) + split[split.length - 1]; 
 }
 
-export function monthMapToArray(input: MonthMap) {
+export function monthMapToArray(input: MonthMap | null, ytdMonth: MonthType) {
     let output = []
-    for (let i = 1; i<= 12; i++) {
+    for (let i = 1; i<= ytdMonth; i++) {
         if (!input)
             output.push(0)
         else
@@ -26,12 +27,16 @@ export function monthMapToArray(input: MonthMap) {
     return output
 }
 
-export function calculateAnnualSum(input: MonthMap) {
+export function calculateYtDSum(input: MonthMap, month: MonthType) {
     let sum = 0
-    for (let i = 1; i<= 12; i++) {
+    for (let i = 1; i<= month; i++) {
         sum += (input as any)[i] 
     }
     return sum
+
+}
+export function calculateAnnualSum(input: MonthMap) {
+    return calculateYtDSum(input, 12)
 }
 
 export function extractYears(input: ExpenseIncomeMap) {

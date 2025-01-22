@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { ExpenseIncomeMap, AccountMap, LoadStatus } from '../model';
 import { connect } from "react-redux";
-import { formatMoney, formatWithTabs, calculateAnnualSum } from '../util'
+import { formatMoney, formatWithTabs, calculateAnnualSum, MonthType, calculateYtDSum } from '../util'
 import { ArrowRight, ExclamationOctagonFill } from 'react-bootstrap-icons';
 
 interface SimpleProps {
     overview: AccountMap
     year: string
+    ytdMonth: MonthType
+    actionHandler?: ActionHandler
 }
 
 interface ComparisonProps extends SimpleProps {
@@ -14,6 +16,11 @@ interface ComparisonProps extends SimpleProps {
     year: string
     actuals: AccountMap
     isExpense: boolean
+}
+
+interface ActionHandler {
+    onSelectAccount: (account: string) => void
+    selectedAccount: string
 }
 
 
@@ -36,7 +43,7 @@ class AccountMapOverview extends React.Component<Props, {}> {
   getMoneyString(map: AccountMap, account: string, year: string) {
     let money = "N/A"
     if (account in map && year in map[account]) {
-        let moneySum = calculateAnnualSum(map[account][year])
+        let moneySum = calculateYtDSum(map[account][year], this.props.ytdMonth)
         money = formatMoney(moneySum)
     }
     return money
@@ -50,8 +57,8 @@ class AccountMapOverview extends React.Component<Props, {}> {
     if (!(account in actuals && year in actuals[account])) {
         return [0, 0, "N/A"]
     }
-    let budgetSum = calculateAnnualSum(budget[account][year])
-    let actualsSum = calculateAnnualSum(actuals[account][year])
+    let budgetSum = calculateYtDSum(budget[account][year], this.props.ytdMonth)
+    let actualsSum = calculateYtDSum(actuals[account][year], this.props.ytdMonth)
 
     let absoluteDiff = actualsSum - budgetSum
     let relativeDiff = Math.round(absoluteDiff / budgetSum * 100) // Percentage conversion
@@ -69,9 +76,13 @@ class AccountMapOverview extends React.Component<Props, {}> {
     let accounts = this.getAccountsSorted()
 
     let entries = []
+    let lastAccountLevel = 0
+    let currentAccountLevel = 0
+
     for (const account of accounts) {
         let money = this.getMoneyString(this.props.overview, account, this.props.year) 
         let accountStr = formatWithTabs(account)
+        let currentAccountLevel = account.split(":")
 
         let columns = [
             <td key={account + "_account"}><pre>{accountStr}</pre></td>,
@@ -103,7 +114,9 @@ class AccountMapOverview extends React.Component<Props, {}> {
                 )
             }
         }
-        entries.push(<tr key={account}>
+
+        let className = this.props.actionHandler?.selectedAccount == account ? "bg-primary" : ""
+        entries.push(<tr key={account} className={className} onClick={(e) => this.props.actionHandler?.onSelectAccount(account)}>
             {columns}
         </tr>)
     }

@@ -8,7 +8,7 @@ import AnnualBudgetChart from './components/AnnualBudgetChart';
 import BudgetOverview from './components/BudgetOverview'
 import BudgetNavBar from './components/TabPane';
 import BudgetDropdown from './components/DrowdownButton';
-import { extractYears } from './util';
+import { MonthType, extractYears } from './util';
 import { selectYear } from './features/filters';
 import { selectTab } from './features/uistate';
 import BudgetComparison from './components/BudgetComparison';
@@ -36,11 +36,12 @@ class App extends React.Component<PropState, {}>  {
   }
 
   getYtdDisplayComponent() {
-    return <div></div>
+    let currentMonth = new Date().getMonth() + 1 as MonthType // Month in 1..12
+    return <BudgetComparison summary={this.props.budget.budgets} year={this.props.filters.selectedYear} ytdMonth={currentMonth}/>
   }
 
   getAnnualDisplayComponent() {
-    return <BudgetComparison summary={this.props.budget.budgets} year={this.props.filters.selectedYear}/>
+    return <BudgetComparison summary={this.props.budget.budgets} year={this.props.filters.selectedYear} ytdMonth={12}/>
   }
 
   render() {

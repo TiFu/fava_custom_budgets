@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ExpenseIncomeMap, AccountMap, LoadStatus, AnnualMap } from '../model';
 import { connect } from "react-redux";
-import { formatMoney, formatWithTabs, calculateAnnualSum, monthMapToArray } from '../util'
+import { formatMoney, formatWithTabs, calculateAnnualSum, monthMapToArray, MonthType } from '../util'
 import * as Highcharts from 'highcharts'
 import { HighchartsReact } from 'highcharts-react-official';
 import { MonthMap } from '../model';
@@ -50,8 +50,9 @@ let options = {
 };
 
 interface Props {
-  actuals: MonthMap
-  budget: MonthMap
+  actuals: MonthMap | null
+  budget: MonthMap | null
+  ytdMonth: MonthType
   seriesName: string
   maxYAxis: number
   minYAxis: number
@@ -65,9 +66,9 @@ class AnnualBudgetChart extends React.Component<Props, {}> {
     chart.yAxis.min = this.props.minYAxis
     chart.title.text = this.props.seriesName
     chart.series[0].name = this.props.seriesName
-    chart.series[0].data =  monthMapToArray(this.props.actuals)
+    chart.series[0].data =  monthMapToArray(this.props.actuals, this.props.ytdMonth)
 
-    chart.series[1]["data"] = monthMapToArray(this.props.budget)
+    chart.series[1]["data"] = monthMapToArray(this.props.budget, this.props.ytdMonth)
 
     return <HighchartsReact highcharts={Highcharts} options={chart} />
   }

@@ -15,7 +15,7 @@ class ExpenseIncomeMapOverview extends React.Component<ExpenseIncomeMapOverviewP
     console.log("ExpenseIncomeMap", this.props.overview)
     if (!this.props.overview)
         return <div>No budget loaded yet...</div>
-        
+
     return <div className="p-2">
 
         <Container fluid className="pl-0 pr-0">
@@ -35,11 +35,11 @@ class ExpenseIncomeMapOverview extends React.Component<ExpenseIncomeMapOverviewP
         <Row>
             <Col>
                 <h2>Income</h2>
-                <AccountMapOverview overview={this.props.overview.Income} year={this.props.year} />
+                <AccountMapOverview ytdMonth={12} overview={this.props.overview.Income} year={this.props.year} />
             </Col>
             <Col>        
                 <h2>Expenses</h2>
-                <AccountMapOverview overview={this.props.overview.Expenses}  year={this.props.year}/>
+                <AccountMapOverview ytdMonth={12} overview={this.props.overview.Expenses}  year={this.props.year}/>
             </Col>
         </Row>
         </Container>
