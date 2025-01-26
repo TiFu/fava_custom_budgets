@@ -1,3 +1,0 @@
-fava>=1.26.1
-pyyaml>=6.0.1
-beanquery>=0.1.0
