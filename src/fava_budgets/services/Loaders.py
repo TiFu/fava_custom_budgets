@@ -1,4 +1,4 @@
-from fava_budgets.Summary import CostSummary
+from fava_budgets.services.Summary import CostSummary
 from fava.context import g
 from fava.helpers import FavaAPIError
 from beanquery.query import run_query  # type: ignore

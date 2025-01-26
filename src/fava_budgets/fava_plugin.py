@@ -1,12 +1,11 @@
 from fava.ext import FavaExtensionBase, extension_endpoint
-from fava_budgets.calculators import BudgetSummary
 from fava_budgets.actuals import ActualIncomeExpenseSummary
 from flask import jsonify
 from datetime import datetime
 
-from fava_budgets.BudgetReportServices import IncomeExpenseReportService
+from fava_budgets.services.BudgetReportServices import IncomeExpenseReportService
 
-from fava_budgets.Loaders import BudgetLoader, ActualsLoader
+from fava_budgets.services.Loaders import BudgetLoader, ActualsLoader
 class BudgetContext:
     pass
 
@@ -26,11 +25,14 @@ class BudgetFavaPlugin(FavaExtensionBase):
     expensesSummary = None
 
     def after_load_file(self):
+        print("Fava Ledger " + str(self.ledger))
         self.budgetSummary = self.budgetLoader.loadLedger(self.ledger)
         self.incomeSummary = self.incomeActualsLoader.loadLedger(self.ledger)
         self.expensesSummary = self.expensesActualsLoader.loadLedger(self.ledger)
 
         self.budgetReportService = IncomeExpenseReportService(self.budgetSummary, self.incomeSummary, self.expensesSummary)
+
+    # TODO: We can optimize load times here by pre-calculating everything & then just sending whatever is needed from bootstrap
 
     @extension_endpoint("ytd_summary")
     def getYtDSummary(self):

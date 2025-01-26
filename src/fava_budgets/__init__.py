@@ -1,3 +1,3 @@
-from fava_budgets.budget_plugin import BudgetFavaPlugin
+from fava_budgets.fava_plugin import BudgetFavaPlugin
 
 __all__ = ["BudgetFavaPlugin"]
