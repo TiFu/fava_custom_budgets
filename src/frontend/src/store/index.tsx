@@ -3,9 +3,9 @@ import { configureStore } from '@reduxjs/toolkit'
 import budgetSlice from '../features/budgets'
 import filterSlice from '../features/filters'
 import uiSlice from '../features/uistate'
-import { BudgetSummary } from '../model';
+import { BudgetSummaryData } from '../model';
 
-declare var budgets: BudgetSummary;
+declare var budgets: BudgetSummaryData;
 
 const store = configureStore({
     reducer: {

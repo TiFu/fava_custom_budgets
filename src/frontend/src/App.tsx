@@ -32,7 +32,7 @@ class App extends React.Component<PropState, {}>  {
 
   getOverviewDisplayComponent() {
     console.log("Overview: ", this.props.budget)
-    return <BudgetOverview overview={this.props.budget.budgets.budgets} year={this.props.filters.selectedYear}/>
+    return <BudgetOverview overview={this.props.budget.budgets.getBudgetOverview(this.props.filters.selectedYear)} year={this.props.filters.selectedYear}/>
   }
 
   getYtdDisplayComponent() {
@@ -46,9 +46,9 @@ class App extends React.Component<PropState, {}>  {
 
   render() {
     console.log("App: ", this.props.budget.budgets)
-    let years = extractYears(this.props.budget.budgets.actuals)
+    let years = this.props.budget.budgets.getYears().map(a => a + "")
     
-    let displayComponent = null
+    let displayComponent: React.ReactElement | null = null
 
     switch (this.props.uislice.selectedTab) {
       case "overview":
@@ -69,7 +69,7 @@ class App extends React.Component<PropState, {}>  {
             <BudgetDropdown years={years} selectedYear={this.props.filters.selectedYear} onSelect={(e) => this.props.selectYear(e as any)}/>
           </div>
           <div>
-          <BudgetNavBar activeTab={this.props.uislice.selectedTab} dispatch={this.props.selectTab}/>
+          <BudgetNavBar year={this.props.filters.selectedYear} activeTab={this.props.uislice.selectedTab} dispatch={this.props.selectTab}/>
           </div>
           <div className="pt-2">
             {displayComponent}

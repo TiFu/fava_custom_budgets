@@ -4,8 +4,9 @@ import { connect } from "react-redux";
 import AccountMapOverview from './AccountMapOverview';
 import {Row, Col, Container} from 'react-bootstrap'
 import ProfitOverview from './ProfitSummary';
+import { AnnualSummary, ProfitSummary } from '../model/model_classes';
 interface ExpenseIncomeMapOverviewProps {
-    overview: ExpenseIncomeMap
+    overview: ProfitSummary
     year: string
 }
 
@@ -21,13 +22,8 @@ class ExpenseIncomeMapOverview extends React.Component<ExpenseIncomeMapOverviewP
         <Container fluid className="pl-0 pr-0">
         <Row>
             <Col>
-                <h2>Budget Overview for {this.props.year}</h2>
-            </Col>
-        </Row>
-        <Row>
-            <Col>
                 <h3>Profit</h3>
-                <ProfitOverview overview={this.props.overview} year={this.props.year}/>
+                <ProfitOverview budget={this.props.overview} year={this.props.year} month={12} />
             </Col>
             <Col>
             </Col>
@@ -35,11 +31,11 @@ class ExpenseIncomeMapOverview extends React.Component<ExpenseIncomeMapOverviewP
         <Row>
             <Col>
                 <h2>Income</h2>
-                <AccountMapOverview ytdMonth={12} overview={this.props.overview.Income} year={this.props.year} />
+                <AccountMapOverview ytdMonth={12} overview={this.props.overview.getIncome()} />
             </Col>
             <Col>        
                 <h2>Expenses</h2>
-                <AccountMapOverview ytdMonth={12} overview={this.props.overview.Expenses}  year={this.props.year}/>
+                <AccountMapOverview ytdMonth={12} overview={this.props.overview.getExpenses()} />
             </Col>
         </Row>
         </Container>

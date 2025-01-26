@@ -14,8 +14,7 @@ export type ExpenseIncomeMap = {
     Income: AccountMap
 }
 
-export interface BudgetSummary {
+export interface BudgetSummaryData {
     budgets: ExpenseIncomeMap
     actuals: ExpenseIncomeMap
-
 }

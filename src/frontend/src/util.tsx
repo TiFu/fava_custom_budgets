@@ -2,9 +2,20 @@ import { AccountMap, AnnualMap, ExpenseIncomeMap, Month, MonthMap } from "./mode
 
 const nFormat = new Intl.NumberFormat(undefined, {minimumFractionDigits: 0});
 
-export function formatMoney(money: number): string {
+export function formatMoney(money: number | undefined): string {
+    if (money == undefined) {
+        return "";
+    }
     money = Math.round(money)
     return nFormat.format(money)
+}
+
+export function formatPercentage(money: number | undefined): string {
+    if (money === undefined) {
+        return "-"
+    }
+
+    return Math.round(money * 100) + "%"
 }
 
 export type MonthType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12

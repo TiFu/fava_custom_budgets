@@ -7,6 +7,7 @@ import AccountMapOverview from './AccountMapOverview';
 
 interface ExpenseIncomeMapOverviewProps {
     activeTab: string
+    year: string
     dispatch: (e: string) => void
 }
 
@@ -18,13 +19,13 @@ class BudgetNavBar extends React.Component<ExpenseIncomeMapOverviewProps, {}> {
     onSelect={(selectedKey) => this.props.dispatch(selectedKey as string)}
   >
     <Nav.Item>
-      <Nav.Link eventKey="ytd">YTD</Nav.Link>
+      <Nav.Link eventKey="ytd">YTD {this.props.year}</Nav.Link>
     </Nav.Item>
     <Nav.Item>
-      <Nav.Link eventKey="annual">Annual summary</Nav.Link>
+      <Nav.Link eventKey="annual">Annual summary {this.props.year} </Nav.Link>
     </Nav.Item>
     <Nav.Item>
-      <Nav.Link eventKey="overview">Budget Overview</Nav.Link>
+      <Nav.Link eventKey="overview">Budget Overview {this.props.year}</Nav.Link>
     </Nav.Item>
   </Nav>
   }

@@ -1,5 +1,4 @@
 import {PayloadAction, createSlice } from '@reduxjs/toolkit'
-import {BudgetSummary, LoadStatus} from '../model/index'
 
 interface FilterState {
     selectedYear: string

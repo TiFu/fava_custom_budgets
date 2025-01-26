@@ -1,17 +1,19 @@
 import {PayloadAction, createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import {Budget} from '../api/model'
-import { budgetApiService } from '../api/service'
-import {BudgetSummary, LoadStatus} from '../model/index'
+import {BudgetSummaryData, LoadStatus} from '../model/index'
+import { BudgetActualSummary } from '../model/model_classes';
 
-declare var budgets: BudgetSummary;
+declare var budgets: BudgetSummaryData;
+
+console.log("Budgets is ", budgets)
+const budgetSummary = new BudgetActualSummary(budgets)
 
 interface BudgetState {
-    budgets: BudgetSummary
+    budgets: BudgetActualSummary
     status: LoadStatus   
 }
 
 const initialState: BudgetState = {
-    budgets: budgets,
+    budgets: budgetSummary,
     status: LoadStatus.Loading 
 }
 const budgetSlice = createSlice({
