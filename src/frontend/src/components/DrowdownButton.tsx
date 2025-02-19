@@ -1,7 +1,4 @@
 import * as React from 'react';
-import { ExpenseIncomeMap, LoadStatus } from '../model';
-import { connect } from "react-redux";
-import AccountMapOverview from './AccountMapOverview';
 import { DropdownButton, Dropdown } from 'react-bootstrap';
 
 interface Props {
@@ -21,7 +18,7 @@ class BudgetDropdown extends React.Component<Props, {}> {
 
     }
 
-    return     <DropdownButton title={this.props.selectedYear}
+    return     <DropdownButton className="pe-2" style={{float: "left"}} title={this.props.selectedYear}
                     onSelect={(selectedKey) => this.props.onSelect(selectedKey)}>
                 {entries}
         </DropdownButton>

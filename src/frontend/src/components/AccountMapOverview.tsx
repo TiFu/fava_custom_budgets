@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { ExpenseIncomeMap, AccountMap, LoadStatus } from '../model';
 import { connect } from "react-redux";
 import { formatMoney, formatWithTabs, calculateAnnualSum, MonthType, calculateYtDSum, formatPercentage } from '../util'
 import { ArrowRight, ExclamationOctagonFill } from 'react-bootstrap-icons';
-import { AnnualComparison, AnnualSummary } from '../model/model_classes';
+import { AnnualComparison, AnnualSummary } from '../services/IncomeExpenseBudgetService';
 
 interface BaseProps{
     ytdMonth: MonthType

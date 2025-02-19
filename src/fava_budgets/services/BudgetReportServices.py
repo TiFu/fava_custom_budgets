@@ -43,6 +43,14 @@ class IncomeExpenseReportService:
         return {
             "year": year,
             "month": currentMonth,
+            "budget": {
+                "Income": incomeBudget, 
+                "Expenses": expenseBudget
+            },
+            "actuals": {
+                "Income": incomeNumbers,
+                "Expenses": expenseBudget
+            },
             "income": {
                 "budget": incomeBudget,
                 "actuals": incomeNumbers

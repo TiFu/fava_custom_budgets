@@ -1,11 +1,8 @@
 import * as React from 'react';
-import { ExpenseIncomeMap, AccountMap, LoadStatus, AnnualMap } from '../model';
-import { connect } from "react-redux";
 import { formatMoney, formatWithTabs, calculateAnnualSum, monthMapToArray, MonthType } from '../util'
 import * as Highcharts from 'highcharts'
 import { HighchartsReact } from 'highcharts-react-official';
-import { MonthMap } from '../model';
-import { AnnualComparison } from '../model/model_classes';
+import { AnnualComparison } from '../services/IncomeExpenseBudgetService';
 
 let options = {
   title: {

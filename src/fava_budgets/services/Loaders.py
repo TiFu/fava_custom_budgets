@@ -3,14 +3,128 @@ from fava.context import g
 from fava.helpers import FavaAPIError
 from beanquery.query import run_query  # type: ignore
 from collections import namedtuple
+from beancount.core.data import Transaction, Price, Open, Commodity, Close, Balance, Custom
+from decimal import Decimal
+
+# TODO: the income expense beancount plugin needs to check for errors -> eg correct number of values, only income/expense accounts
+class BeancountLedgerHelper:
+    def __init__(self, entries):
+        self.entries = entries
+
+    def getTransactions(self):
+        return filter(lambda x: isinstance(x, Transaction), self.entries)
+    
+    def getOpen(self):
+        return filter(lambda x: isinstance(x, Open), self.entries)
+
+    def getCustom(self):
+        return filter(lambda x: isinstance(x, Custom), self.entries)
+    def getEntries(self):
+        return self.entries
+
+
+class FavaLedgerHelper:
+    def __init__(self, favaLedger):
+        self.ledger = favaLedger
+
+    def getTransactions(self):
+        return self.ledger.all_entries_by_type.Transaction
+    
+    def getOpen(self):
+        return self.ledger.all_entries_by_type.Open
+
+    def getCustom(self):
+        return self.ledger.all_entries_by_type.Custom
+    
+    def getEntries(self):
+        return self.ledger.all_entries
+
+
+class ILedgerHelper:
+
+    def getTransactions(self):
+        pass
+    
+    def getOpen(self):
+        pass
+
+    def getCustom(self):
+        pass
+
+
+class AssetBudgetLoader:
+    
+    def loadLedger(self, ledgerHelper):
+        #print("Parsing custom")
+
+        budgetedAccounts = self._loadAccounts(ledgerHelper)
+        budgetEntries = self._loadBudgets(ledgerHelper)
+        budgetedTransactions = self._loadTransactions(ledgerHelper, budgetedAccounts)
+        #print(budgetedTransactions)
+        return {
+            "budget": CostSummary(budgetEntries),
+            "accounts": budgetedAccounts,
+            "budgetedTransactions": budgetedTransactions
+        }
+
+    def _loadTransactions(self, ledger, budgetedAccounts):
+        entries = []
+        # Parse custom
+        transactions = ledger.getTransactions()
+        for entry in transactions:
+            postings = entry.postings
+            budgetedPostings = []
+            atLeast1BudgetedPosting = False
+            for posting in postings:
+                if posting.account in budgetedAccounts:
+                    budgetedPostings.append(posting)
+                    atLeast1BudgetedPosting = True
+            if atLeast1BudgetedPosting:
+                entries.append({ "entry": entry, "budgetedPostings": budgetedPostings})
+
+        return entries
+
+
+    def _loadAccounts(self, ledger):
+        entries = []
+        # Parse custom
+        accounts = ledger.getOpen()
+        for entry in accounts:
+            if "budgeted" in entry.meta:
+                entries.append(entry.account)
+        return set(entries)
+
+    def _loadBudgets(self, ledger):
+        entries = []
+        # Parse custom
+        customs = ledger.getCustom()
+        for entry in customs:
+            if entry.type == "asset_budget": # Structure is budget_name start_value january_value february_value [...] december_value
+                year = entry.date.year
+                values = entry.values
+                name = entry.values[0].value
+                start = entry.values[1].value
+            
+                monthlyValues = []
+                #print("Start: " + str(type(start)))
+                accumulatedAmount = Decimal(start)
+                for i, x in enumerate(entry.values[2:]):
+                    #print("Value: " + str(type(x.value)) + ": " + str(x.value))
+                    accumulatedAmount += Decimal(x.value)
+                    monthlyValues.append([i+1, accumulatedAmount])
+
+                entries.append({ 
+                    "account": name,
+                    "year": year,
+                    "values": monthlyValues
+                })
+        return entries
+
 
 class BudgetLoader:
 
-    def __init__(self):
-        pass
-
     def loadLedger(self, ledger):
-        print("Parsing custom")
+        #print("Parsing custom")
         entries = []
         # Parse custom
         customs = ledger.all_entries_by_type.Custom

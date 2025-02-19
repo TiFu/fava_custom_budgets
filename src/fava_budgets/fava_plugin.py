@@ -4,8 +4,9 @@ from flask import jsonify
 from datetime import datetime
 
 from fava_budgets.services.BudgetReportServices import IncomeExpenseReportService
+from fava_budgets.services.AssetBudgetReportService import AssetBudgetReportService
 
-from fava_budgets.services.Loaders import BudgetLoader, ActualsLoader
+from fava_budgets.services.Loaders import BudgetLoader, ActualsLoader, FavaLedgerHelper, AssetBudgetLoader
 class BudgetContext:
     pass
 
@@ -18,6 +19,7 @@ class BudgetFavaPlugin(FavaExtensionBase):
     budgetLoader = BudgetLoader()
     incomeActualsLoader = ActualsLoader("EUR", "Income")
     expensesActualsLoader = ActualsLoader("EUR", "Expenses")
+    assetBudgetLoader = AssetBudgetLoader()
 
     budgetReportService = None
     budgetSummary = None
@@ -30,6 +32,10 @@ class BudgetFavaPlugin(FavaExtensionBase):
         self.incomeSummary = self.incomeActualsLoader.loadLedger(self.ledger)
         self.expensesSummary = self.expensesActualsLoader.loadLedger(self.ledger)
 
+        favaLedger = FavaLedgerHelper(self.ledger)
+        self.assetBudgetInformation = self.assetBudgetLoader.loadLedger(favaLedger)
+        #print(self.assetBudgetInformation)
+        self.assetBudgetReportService = AssetBudgetReportService(self.assetBudgetInformation)
         self.budgetReportService = IncomeExpenseReportService(self.budgetSummary, self.incomeSummary, self.expensesSummary)
 
     # TODO: We can optimize load times here by pre-calculating everything & then just sending whatever is needed from bootstrap
@@ -49,7 +55,7 @@ class BudgetFavaPlugin(FavaExtensionBase):
         
         return self.budgetReportService.getYtDBreakdown(year, month)
 
-    def bootstrap(self):
+    def bootstrapIncomeExpenseBudget(self):
         return {
             "budgets": self.getBudgets(),
             "actuals": {
@@ -58,6 +64,16 @@ class BudgetFavaPlugin(FavaExtensionBase):
             }
         }
 
+    def bootstrapAssetBudget(self):
+        
+        result = {
+            "budgetBalance": self.assetBudgetReportService.getBudgetBalances(),
+            "accountBalance": self.assetBudgetReportService.getAccountBalances(),
+            "accounts": self.assetBudgetReportService.getBudgetedAccounts(),
+            "budgets": self.assetBudgetReportService.getBudgets().getSummary()
+        }
+        print(result)
+        return result
 
     @extension_endpoint("budget")
     def getBudgets(self):

@@ -1,11 +1,17 @@
 import {PayloadAction, createSlice } from '@reduxjs/toolkit'
+import { MonthType } from '../util'
 
+export type TabKey = "spending" | "overview-spending-budget" | "asset-budget" | "asset-account"
 interface UIState {
-    selectedTab: string
+    selectedTab: TabKey,
+    showYtD: boolean,
+    ytdMonth: MonthType
 }
 
 const initialState: UIState = {
-    selectedTab: "ytd"
+    selectedTab: "spending",
+    showYtD: false,
+    ytdMonth: 12
 }
 
 //export const fetchBudget = createAsyncThunk('budget/fetchBudget', async () => {
@@ -18,13 +24,22 @@ const uiSlice = createSlice({
   name: 'uistate',
   initialState,
   reducers: {
-        selectTab(state, action: PayloadAction<string>) {
+        selectTab(state, action: PayloadAction<TabKey>) {
             console.log("Setting active tab to " + action.payload)
             state.selectedTab = action.payload
+        },
+        toggleYtD(state, action: PayloadAction<any>) {
+            state.showYtD = !state.showYtD
+            if (state.showYtD) {
+                let currentMonth = new Date().getMonth() + 1 as MonthType // Month in 1..12
+                state.ytdMonth = currentMonth
+            } else {
+                state.ytdMonth = 12
+            }
         }
   }
 })
 
 
-export const { selectTab } = uiSlice.actions
+export const { selectTab, toggleYtD } = uiSlice.actions
 export default uiSlice.reducer

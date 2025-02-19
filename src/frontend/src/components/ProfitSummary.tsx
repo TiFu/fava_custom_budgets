@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { ExpenseIncomeMap, AccountMap, LoadStatus } from '../model';
-import { connect } from "react-redux";
 import { formatMoney, formatWithTabs, calculateAnnualSum, MonthType } from '../util'
-import { AnnualSummary, ProfitSummary } from '../model/model_classes';
+import { ProfitSummary } from '../services/IncomeExpenseBudgetService';
 
 interface Props {
     budget: ProfitSummary
@@ -12,15 +10,6 @@ interface Props {
 }
 
 class ProfitOverview extends React.Component<Props, {}> {
-
-   calculateForAccount(map: AccountMap, account: string): number | string {
-        if (!(account in map) || !(this.props.year in map[account])) {
-            return "N/A"
-        } 
-
-        let moneySum = calculateAnnualSum(map[account][this.props.year])
-        return moneySum
-   }
 
    getFormattedData(summary: ProfitSummary): [string, string, string] {
     let income = summary.getIncome().getYtDSum("Income", this.props.month)
@@ -62,7 +51,6 @@ class ProfitOverview extends React.Component<Props, {}> {
         incomeActual = <td>{formattedIncomeActual}</td>
         expensesActual = <td>{formattedExpensesActual}</td>
         diffActual = <td>{formattedProfitActuals}</td>
-        
     }
 
     return <table style={{width: "100%"}}>

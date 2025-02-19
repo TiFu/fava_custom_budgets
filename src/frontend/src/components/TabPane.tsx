@@ -1,9 +1,6 @@
 import Nav from 'react-bootstrap/Nav';
 
 import * as React from 'react';
-import { ExpenseIncomeMap, LoadStatus } from '../model';
-import { connect } from "react-redux";
-import AccountMapOverview from './AccountMapOverview';
 
 interface ExpenseIncomeMapOverviewProps {
     activeTab: string
@@ -13,20 +10,25 @@ interface ExpenseIncomeMapOverviewProps {
 
 class BudgetNavBar extends React.Component<ExpenseIncomeMapOverviewProps, {}> {
 
+  // TODO: We could merge Spending & Spending YTD -> make this a toggle or just show both?
   render() {
     return     <Nav variant="tabs"
     activeKey={this.props.activeTab}
     onSelect={(selectedKey) => this.props.dispatch(selectedKey as string)}
   >
-    <Nav.Item>
-      <Nav.Link eventKey="ytd">YTD {this.props.year}</Nav.Link>
-    </Nav.Item>
-    <Nav.Item>
-      <Nav.Link eventKey="annual">Annual summary {this.props.year} </Nav.Link>
-    </Nav.Item>
-    <Nav.Item>
-      <Nav.Link eventKey="overview">Budget Overview {this.props.year}</Nav.Link>
-    </Nav.Item>
+      <Nav.Item>
+        <Nav.Link eventKey="spending">Spending {this.props.year}</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link eventKey="overview-spending-budget">Spending Budget Overview {this.props.year}</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link eventKey="asset-budget">Asset Budget  {this.props.year}</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link eventKey="asset-account">Asset Accounts {this.props.year}</Nav.Link>
+      </Nav.Item>
+
   </Nav>
   }
 

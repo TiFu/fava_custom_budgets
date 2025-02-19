@@ -1,6 +1,16 @@
-import { AccountMap, AnnualMap, ExpenseIncomeMap, Month, MonthMap } from "./model";
+
+import {AccountMap, MonthMap} from './data_model/common';
+import {ExpenseIncomeMap} from './data_model/IncomeExpenseBudget'
 
 const nFormat = new Intl.NumberFormat(undefined, {minimumFractionDigits: 0});
+
+export function convertToMonthName(month: MonthType) {
+    var months = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
+
+    var selectedMonthName = months[month - 1];
+    return selectedMonthName
+}
 
 export function formatMoney(money: number | undefined): string {
     if (money == undefined) {
@@ -27,10 +37,11 @@ export function formatWithTabs(account: string): string {
     return "  ".repeat(level) + split[split.length - 1]; 
 }
 
-export function monthMapToArray(input: MonthMap | null, ytdMonth: MonthType) {
+export function monthMapToArray(input: MonthMap<number> | null, ytdMonth: MonthType) {
     let output = []
+    console.log("Month map to array: ", input)
     for (let i = 1; i<= ytdMonth; i++) {
-        if (!input)
+        if (!input || !(i in input))
             output.push(0)
         else
             output.push(Math.round((input as any)[i]))
@@ -38,7 +49,7 @@ export function monthMapToArray(input: MonthMap | null, ytdMonth: MonthType) {
     return output
 }
 
-export function calculateYtDSum(input: MonthMap, month: MonthType) {
+export function calculateYtDSum(input: MonthMap<number>, month: MonthType) {
     let sum = 0
     for (let i = 1; i<= month; i++) {
         sum += (input as any)[i] 
@@ -46,7 +57,7 @@ export function calculateYtDSum(input: MonthMap, month: MonthType) {
     return sum
 
 }
-export function calculateAnnualSum(input: MonthMap) {
+export function calculateAnnualSum(input: MonthMap<number>) {
     return calculateYtDSum(input, 12)
 }
 
@@ -60,7 +71,7 @@ export function extractYears(input: ExpenseIncomeMap) {
     return yearArray
 }
 
-function _extractYears(accountMap: AccountMap, set: Set<string>) {
+function _extractYears(accountMap: AccountMap<any>, set: Set<string>) {
     for (let account in accountMap) {
         let annualMap = accountMap[account]
         let accountExpenseYears = Object.keys(annualMap)
