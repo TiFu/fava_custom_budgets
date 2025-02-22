@@ -1,8 +1,7 @@
-import * as React from 'react';
+/*import * as React from 'react';
 import { formatMoney, formatWithTabs, calculateAnnualSum, monthMapToArray, MonthType } from '../util'
 import * as Highcharts from 'highcharts'
 import { HighchartsReact } from 'highcharts-react-official';
-import { AnnualComparison } from '../services/IncomeExpenseBudgetService';
 
 let options = {
   title: {
@@ -114,4 +113,4 @@ class AnnualBudgetChart extends React.Component<Props, {}> {
 
 }
 
-export default AnnualBudgetChart;
+export default AnnualBudgetChart;*/

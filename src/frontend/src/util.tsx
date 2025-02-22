@@ -28,6 +28,22 @@ export function formatPercentage(money: number | undefined): string {
     return Math.round(money * 100) + "%"
 }
 
+export function getMonthOrZero(map: AccountMap<number>, account: string, year: string, ytd: MonthType): Array<number> {
+    let result = []
+    for (let i = 1; i <= ytd; i++) {
+        result.push(getValueOrZero(map, account, year, ytd))
+    }
+    return result
+}
+
+export function getValueOrZero(map: AccountMap<number>, account: string, year: string, ytd: MonthType) {
+    if (account in map && year in map[account] && ytd in map[account][year]) {
+        return map[account][year][ytd]
+    } else {
+        return 0
+    }
+}
+
 export type MonthType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 // Account:Sub1:Sub2 => "    Sub2"
 export function formatWithTabs(account: string): string {

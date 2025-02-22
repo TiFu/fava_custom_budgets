@@ -1,3 +1,4 @@
+from datetime import datetime
 class CostSummary:
     
     def __init__(self, elements):
@@ -30,9 +31,12 @@ class CostSummary:
                 value = values[i][1]
                 self._setIfNotExists(self.budget, acc, year, month, value)
 
+        currentYear = datetime.now().year
         self.minYear = minYear
-        self.maxYear = maxYear
+        self.maxYear = max(currentYear, maxYear)
+        maxYear = self.maxYear
         
+
         # Step 2 fill in "gaps" across all accounts
         for account in self.budget.keys():
             for year in range(minYear, maxYear + 1):

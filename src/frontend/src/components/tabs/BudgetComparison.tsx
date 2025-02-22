@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { MonthType } from '../../util'
 import { Col, Container, Row } from 'react-bootstrap';
+import { IncomeExpenseBudgetService } from '../../services/IncomeExpenseBudgetService';
+import ProfitSummary from '../generic/ProfitSummary';
+import BudgetActualComparisonView from '../generic/BudgetActualComparison';
 import MoneySummaryComponent from '../MoneySummaryComponent';
-import ProfitOverview from '../ProfitSummary';
-import { BudgetActualSummary } from '../../services/IncomeExpenseBudgetService';
 
 
 interface Props {
-  summary: BudgetActualSummary
+  summary: IncomeExpenseBudgetService
   year: string
   ytdMonth: MonthType
 }
@@ -15,22 +16,21 @@ interface Props {
 class BudgetComparison extends React.Component<Props, {}> {
  
   render() {
-    let expenses = this.props.summary.getExpenses(this.props.year)
-    let income = this.props.summary.getIncome(this.props.year)
-
-    let [min, max] = this.props.summary.getMinMaxAnnualSum(this.props.year)
-    let chart = {min: min, max: max}
+    let profitOverview = this.props.summary.getIncExpProfitBudget(this.props.year, this.props.ytdMonth)
+    let incomeOverview = this.props.summary.getIncomeComparison(this.props.year, this.props.ytdMonth)
+    let expenseOverview = this.props.summary.getExpenseComparison(this.props.year, this.props.ytdMonth)
+    
     return <Container fluid className="p-0">
         <Row>
-          <Col><h3>Profit</h3><ProfitOverview budget={this.props.summary.getBudgetOverview(this.props.year)} actuals={this.props.summary.getActualOverview(this.props.year)} year={this.props.year} month={this.props.ytdMonth} /></Col>
+          <Col><h3>Profit</h3><ProfitSummary summary={profitOverview} /></Col>
           <Col></Col>
         </Row>
         <Row>
             <Col>
-                <MoneySummaryComponent ytdMonth={this.props.ytdMonth} chart={chart} title={"Income " + this.props.year} isExpense={false} comparison={income} rootAccount='Income' />          
+              <MoneySummaryComponent service={this.props.summary} initialAccount='Income' comparison={incomeOverview} title='Income' year={this.props.year} ytd={this.props.ytdMonth} />
             </Col>  
             <Col>
-                <MoneySummaryComponent ytdMonth={this.props.ytdMonth} chart={chart}title={"Expenses " + this.props.year}  isExpense={true} comparison={expenses} rootAccount='Expenses' />                  
+              <MoneySummaryComponent service={this.props.summary} initialAccount='Expenses' comparison={expenseOverview} title='Expenses' year={this.props.year} ytd={this.props.ytdMonth} />
             </Col>
         </Row>
     </Container>

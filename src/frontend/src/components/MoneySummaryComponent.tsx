@@ -1,21 +1,20 @@
 import * as React from 'react';
 import { MonthType } from '../util'
 import { Col, Container, Row } from 'react-bootstrap';
-import AnnualBudgetChart from './AnnualBudgetChart';
-import AccountMapOverview from './AccountMapOverview';
-import { AnnualComparison } from '../services/IncomeExpenseBudgetService';
+import { BudgetActualComparisonData, BudgetActualComparisonSummary } from '../view_model/BudgetActualComparisonData';
+import { BudgetChartData } from '../view_model/BudgetChartData';
+import BudgetActualComparisonView, { ActionHandler } from './generic/BudgetActualComparison';
+import BudgetChart from './generic/BudgetChart';
+import { IncomeExpenseBudgetService } from '../services/IncomeExpenseBudgetService';
 
 
 interface Props {
-  comparison: AnnualComparison
-  rootAccount: "Income" | "Expenses"
-  isExpense: boolean
+  comparison: BudgetActualComparisonSummary
+  service: IncomeExpenseBudgetService
+  initialAccount: "Income" | "Expenses"
   title: string
-  ytdMonth: MonthType
-  chart: {
-    min: number,
-    max: number
-  }
+  year: string
+  ytd: MonthType
 }
 
 interface State {
@@ -27,7 +26,7 @@ class MoneySummaryComponent extends React.Component<Props, State> {
   constructor(props: Props) {
         super(props)
         this.state = {
-            highlightedAccount: this.props.rootAccount
+          highlightedAccount: this.props.initialAccount
         }
   }
   
@@ -36,19 +35,20 @@ class MoneySummaryComponent extends React.Component<Props, State> {
         highlightedAccount: account
     })
   }
-
+  
   render() {
     let actionHandler = {
-        onSelectAccount: (account: string) => this.setHighlightedAccount(account),
-        selectedAccount: this.state.highlightedAccount
+      onSelectAccount: (account: string) => this.setState({highlightedAccount: account}),
+      selectedAccount: this.state.highlightedAccount
     }
+    let chart = this.props.service.getChart(this.state.highlightedAccount, this.props.year, this.props.ytd)
     return <Container fluid className="p-0">
         <Row>
-            <Col><AnnualBudgetChart  ytdMonth={this.props.ytdMonth} minYAxis={this.props.chart.min} maxYAxis={this.props.chart.max} seriesName={this.props.title} comparison={this.props.comparison} account={this.state.highlightedAccount} /></Col>
+            <Col><BudgetChart data={chart} /></Col>
         </Row>
         <Row className="pt-4">
             <Col>
-          <AccountMapOverview ytdMonth={this.props.ytdMonth} actionHandler={actionHandler} diff={this.props.comparison}/></Col>
+          <BudgetActualComparisonView actionHandler={actionHandler} type={this.props.title} comparison={this.props.comparison}/></Col>
         </Row>
     </Container>
   }

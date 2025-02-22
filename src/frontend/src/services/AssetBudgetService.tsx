@@ -44,7 +44,7 @@ export class AssetBudgetService {
         })
 
         return {
-            lineItems: budgetNames.map(x => { return { name: x, hierarchyLevel: 0}}),
+            lineItems: budgetNames.map(x => { return { name: x, shortName: x, hierarchyLevel: 0}}),
             comparison: data
         }
     }

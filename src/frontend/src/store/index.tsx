@@ -3,9 +3,6 @@ import { configureStore } from '@reduxjs/toolkit'
 import budgetSlice from '../features/budgets'
 import filterSlice from '../features/filters'
 import uiSlice from '../features/uistate'
-import { BudgetSummaryData } from '../data_model/IncomeExpenseBudget'
-
-declare var budgets: BudgetSummaryData
 
 const store = configureStore({
     reducer: {

@@ -15,6 +15,7 @@ export interface BudgetSummaryData {
 
 export interface LineItem {
     name: string
+    shortName: string
     hierarchyLevel: number
 }
 
@@ -25,5 +26,5 @@ export interface BudgetActualComparisonSummary {
 
 export interface BudgetSummary {
     lineItems: Array<LineItem>
-    comparison: {[key: string]: BudgetSummaryData}
+    summary: {[key: string]: BudgetSummaryData}
 } 

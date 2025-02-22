@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { formatMoney, formatWithTabs, formatPercentage } from '../../util'
+import { formatMoney } from '../../util'
 import { ExclamationOctagonFill } from 'react-bootstrap-icons';
-import { AnnualComparison, AnnualSummary } from '../../services/IncomeExpenseBudgetService';
-import { BudgetActualComparisonData, BudgetSummary, BudgetSummaryData } from '../../view_model/BudgetActualComparisonData';
+import { BudgetSummary } from '../../view_model/BudgetActualComparisonData';
 import { BudgetActualComparisonSummary } from '../../view_model/BudgetActualComparisonData';
 import { LineItem } from '../../view_model/BudgetActualComparisonData';
 type TableRow = React.JSX.Element
@@ -20,7 +19,7 @@ interface ComparisonProps extends BaseProps {
     comparison: BudgetActualComparisonSummary    
 }
 
-interface ActionHandler {
+export interface ActionHandler {
     onSelectAccount: (account: string) => void
     selectedAccount: string
 }
@@ -32,7 +31,7 @@ interface RowCreator {
 }
 
 function getName(lineItem: LineItem) {
-    return "  ".repeat(lineItem.hierarchyLevel) + lineItem.name
+    return <pre>{"  ".repeat(lineItem.hierarchyLevel) + lineItem.shortName}</pre>
 }
 
 class SummaryRowCreator implements RowCreator {
@@ -40,7 +39,7 @@ class SummaryRowCreator implements RowCreator {
     }
 
     getTableRow(lineItem: LineItem): TableRow {
-        let entry = this.summary.comparison[lineItem.name]
+        let entry = this.summary.summary[lineItem.name]
         let name = getName(lineItem)
         let className = this.actionHandler?.selectedAccount == lineItem.name ? "bg-primary" : ""
         return <tr  key={lineItem.name} 

@@ -1,37 +1,275 @@
-import { BudgetSummaryData } from "../data_model/IncomeExpenseBudget"
-import { AccountMap } from "../data_model/common"
-import { MonthType, calculateAnnualSum } from "../util"
 
-export class BudgetActualSummary {
-    private summary: BudgetSummaryData
+import { act } from "react"
+import { BudgetActualsSummary, ExpenseIncomeMap } from "../data_model/IncomeExpenseBudget"
+import { AccountMap, MonthMap } from "../data_model/common"
+import { MonthType, calculateAnnualSum, getMonthOrZero, getValueOrZero, monthMapToArray } from "../util"
+import { BudgetSummary, LineItem, BudgetSummaryData, BudgetActualComparisonSummary, BudgetActualComparisonData } from "../view_model/BudgetActualComparisonData"
+import { BudgetChartData } from "../view_model/BudgetChartData"
+import {BudgetActualProfitSummaryData} from '../view_model/ProfitSummary'
 
+class AccountWrapper {
     private accounts: Array<string>
     private accountHierarchy: Account
+    private income: Array<LineItem> | null
+    private expenses: Array<LineItem> | null
+
+    constructor(overall: BudgetActualsSummary) {
+        this._extractAccounts(overall)
+        this._extractAccountHierarchy()
+    }
+
+    public getIncomeAccounts(): Array<LineItem> {
+        if (!this.income)
+            this.income = this._getAccountsByType("Income")
+        return this.income        
+    }
+
+    public getExpenseAccounts(): Array<LineItem> {
+        if (!this.expenses)
+            this.expenses = this._getAccountsByType("Expenses")
+        return this.expenses        
+    }
+
+    private _getAccountsByType(type: "Income" | "Expenses"): Array<LineItem> {
+        return this.accounts.filter(a => a.startsWith(type)).map(a => {
+            let arr = a.split(":")
+            return {
+                name: a,
+                shortName: arr[arr.length - 1],
+                hierarchyLevel: arr.length - 1
+            }
+        }).sort()
+    }
+
+    public getChildren(account: string): Array<string> {
+        return this.accountHierarchy.getChildrenRecursive(account).map(a => a.getFullName())
+    }
+
+    private _extractAccounts(overall: BudgetActualsSummary) {
+        let accountSet = new Set<string>
+        Object.keys(overall.actuals.Expenses).forEach(a => accountSet.add(a))
+        Object.keys(overall.budgets.Expenses).forEach(a => accountSet.add(a))
+        Object.keys(overall.actuals.Income).forEach(a => accountSet.add(a))
+        Object.keys(overall.budgets.Income).forEach(a => accountSet.add(a))
+
+        this.accounts = Array.from(accountSet)
+        this.accounts.sort()
+
+    }
+
+    private _extractAccountHierarchy() {
+        let factory = new AccountFactory()
+
+        let rootAccount = factory.constructHierarchy(this.accounts)
+        this.accountHierarchy = rootAccount
+    }
+}
+
+class BudgetActualsSummaryWrapper {
+    private summary: ExpenseIncomeMap
+
+    constructor(overall: BudgetActualsSummary, summary: ExpenseIncomeMap) {
+        this.summary = summary
+    }
+
+    public getValue(account: string, year: string, ytd: MonthType): number {
+        let map = this._getMap(account)
+        if (account in map && year in map[account] && ytd in map[account][year]) {
+            return map[account][year][ytd]
+        } else {
+            return 0
+        }    
+    }
+
+    public getMonthlyValues(account: string, year: string, ytd: MonthType): Array<number> {
+        let result = []
+        for (let i = 1; i <= ytd; i++) {
+            result.push(this.getValue(account, year, i as MonthType))
+        }
+        return result
+    }
+
+    public getAnnualSum(account: string, year: string, ytd: MonthType): number {
+        let result = 0
+        for (let i = 1; i <= ytd; i++) {
+            result += this.getValue(account, year, i as MonthType)
+        }
+        return result
+    }
+
+
+
+    private _getMap(account: string): AccountMap<number> {
+        if (account.startsWith("Income")) {
+            return this.summary.Income
+        } else if (account.startsWith("Expenses")) {
+            return this.summary.Expenses
+        } else {
+            throw new Error("Unknown account type " + account)
+        }
+    }
+}
+
+export class IncomeExpenseBudgetService {
+    private actuals: BudgetActualsSummaryWrapper
+    private budget: BudgetActualsSummaryWrapper
+    private accounts: AccountWrapper
     private minYear: number
     private maxYear: number
 
-    constructor(summary: BudgetSummaryData) {
-        this.summary = summary
-        this.extractAccounts()
-        this.extractAccountHierarchy()
-        this.extractYears()
+    constructor(summary: BudgetActualsSummary) {
+        this.actuals = new BudgetActualsSummaryWrapper(summary, summary.actuals)
+        this.budget = new BudgetActualsSummaryWrapper(summary, summary.budgets)
+        this.accounts = new AccountWrapper(summary)
+        this._extractYears(summary)
     }
 
-    public getMinMaxAnnualSum(year: string): [number, number] {
-        let min = 1000000000
-        let max = -100000000
-        for (let map of [this.summary.actuals.Income["Income"], this.summary.actuals.Expenses["Expenses"], 
-            this.summary.budgets.Income["Income"], this.summary.budgets.Expenses["Expenses"]]) {
-            if (!(year in map)) {
-                continue
-            }
-            const sum = calculateAnnualSum(map[year])
-            min = Math.min(min, sum)
-            max = Math.max(max, sum)
+    public getChart(account: string, year: string, ytd: MonthType): BudgetChartData {
+
+        let actuals = this.actuals.getMonthlyValues(account, year, ytd)
+        let budget = this.budget.getMonthlyValues(account, year, ytd)
+        let children = this.accounts.getChildren(account)
+                        .map((c) => {
+                            return {
+                                name: c,
+                                data: this.actuals.getMonthlyValues(c, year, ytd)
+                            }
+                        })
+
+        return {
+            chartName: account,
+            actuals: actuals,
+            actualBreakdown: children,
+            budget: budget,
+            maxYAxis: Math.max(...actuals, ...budget),
+            minYAxis: Math.min(0, ...actuals, ...budget)
         }
-        return [min, max]
-
     }
+
+    public getBudgetExpenseSummary(year: string, ytd: MonthType): BudgetSummary {
+        let accs = this.accounts.getExpenseAccounts()
+        return this._getSummary(accs, this.budget, year, ytd)
+    }
+
+    public getIncomeComparison(year: string, ytd: MonthType): BudgetActualComparisonSummary {
+        return this._getComparison(this.accounts.getIncomeAccounts(), year, ytd, true)
+    }
+
+    public getExpenseComparison(year: string, ytd: MonthType): BudgetActualComparisonSummary {
+        return this._getComparison(this.accounts.getExpenseAccounts(), year, ytd, false)
+    }
+    
+    public getBudgetIncomeSummary(year: string, ytd: MonthType): BudgetSummary {
+        let accs = this.accounts.getIncomeAccounts()
+        return this._getSummary(accs, this.budget, year, ytd)
+    }
+
+    private _getSummary(accounts: Array<LineItem>, wrapper: BudgetActualsSummaryWrapper, year: string, ytd: MonthType): BudgetSummary {
+        let items = accounts
+        let summary:  {[key: string]: BudgetSummaryData} = {}
+        items.forEach(item => {
+            let a = item.name
+            let actuals = wrapper.getAnnualSum(a, year, ytd)
+            
+            let children = this.accounts.getChildren(a)
+            let breakdown: {[key: string]: number} = {}
+            children.forEach(c => {
+                let n = c
+                breakdown[n] = wrapper.getAnnualSum(c, year, ytd)
+            })
+
+            summary[a] = {
+                values: actuals,
+                valueBreakdown: breakdown
+            }
+        })
+        
+        /*items = items.filter(a => {
+            return Math.abs(summary[a.name].values) > 10e-9
+        })*/
+
+        return {
+            lineItems: items,
+            summary: summary
+        }
+    }
+
+    private _getComparison(accounts: Array<LineItem>, year: string, ytd: MonthType, invertForIncome: boolean): BudgetActualComparisonSummary {
+        let items = accounts
+
+        let values: { [key: string]: BudgetActualComparisonData} = {}
+
+        items.forEach(item => {
+            let a = item.name
+            let budget = this.budget.getAnnualSum(a, year, ytd)
+            let actuals = this.actuals.getAnnualSum(a, year, ytd)
+            let diff = actuals - budget
+            let divisor = budget
+            if (Math.abs(divisor) < 10e-9) {
+                divisor = 1
+            }
+            let diffRel = diff / divisor
+            
+            let children = this.accounts.getChildren(a)
+            let breakdown: {[key: string]: number} = {}
+            children.forEach(c => {
+                let n = c
+                breakdown[n] = this.actuals.getAnnualSum(n, year, ytd)
+            })
+            let warn = diffRel > 0.05 || diff > 250
+            if (invertForIncome)
+                warn = diffRel < -0.05 || diff < -250
+            
+
+            values[a] = {
+                budget: budget,
+                actuals: actuals,
+                absoluteDiff: diff,
+                relativeDiff: diffRel,
+                warn: warn,
+                actualBreakdown: { "cat": 0 }                
+            }
+        })
+
+        // Filter out any items that have 0 budget/actuals (i.e., no change in year/ytd)
+        items = items.filter(a => {
+            return Math.abs(values[a.name].budget) > 10e-9 || Math.abs(values[a.name].actuals) > 10e-9
+        })
+
+        return {
+            lineItems: items,
+            comparison: values
+        }
+    }
+
+    
+    public getIncExpProfitBudget(year: string, ytd: MonthType): BudgetActualProfitSummaryData {
+        let output = this.getIncExpProfitSummary(year, ytd)
+        output.actuals = undefined
+        return output
+    }
+    public getIncExpProfitSummary(year: string, ytd: MonthType): BudgetActualProfitSummaryData {
+
+        let actIncome = this.actuals.getAnnualSum("Income", year, ytd) 
+        let actExpenses = this.actuals.getAnnualSum("Expenses", year, ytd)
+
+        let budIncome = this.budget.getAnnualSum("Income", year, ytd) 
+        let budExpenses = this.budget.getAnnualSum("Expenses", year, ytd)
+        return {
+            budget: {
+                income: budIncome,
+                expenses: budExpenses,
+                profit: budIncome - budExpenses
+            },
+            actuals: {
+                income: actIncome,
+                expenses: actExpenses,
+                profit: actIncome - actExpenses
+            }
+        }
+    }
+
+
     public getYears(): Array<number> {
         let output: Array<number> = []
         for (let i = this.maxYear; i >= this.minYear; i--) {
@@ -39,17 +277,18 @@ export class BudgetActualSummary {
         }
         return output
     }
-    private extractYears() {
-        let [actualIncomeMin, actualIncomeMax] = this.extractYearsFromMap(this.summary.actuals.Income)
-        let [actualExpensesMin, actualExpensesMax] = this.extractYearsFromMap(this.summary.actuals.Expenses)
-        let [budgetsIncomeMin, budgetsIncomeMax] = this.extractYearsFromMap(this.summary.budgets.Income)
-        let [budgetsExpensesMin, budgetsExpensesMax] = this.extractYearsFromMap(this.summary.budgets.Expenses)
+
+    private _extractYears(overall: BudgetActualsSummary) {
+        let [actualIncomeMin, actualIncomeMax] = this._extractYearsFromMap(overall.actuals.Income)
+        let [actualExpensesMin, actualExpensesMax] = this._extractYearsFromMap(overall.actuals.Expenses)
+        let [budgetsIncomeMin, budgetsIncomeMax] = this._extractYearsFromMap(overall.budgets.Income)
+        let [budgetsExpensesMin, budgetsExpensesMax] = this._extractYearsFromMap(overall.budgets.Expenses)
 
         this.minYear = Math.min(actualIncomeMin, actualExpensesMin, budgetsIncomeMin, budgetsExpensesMin)
         this.maxYear = Math.max(actualIncomeMax, actualExpensesMax, budgetsIncomeMax, budgetsExpensesMax)
     }
 
-    private extractYearsFromMap(map: AccountMap<number>): Array<number> {
+    private _extractYearsFromMap(map: AccountMap<number>): Array<number> {
         let max = -10000
         let min = 10000
         for (let account in map) {
@@ -61,257 +300,7 @@ export class BudgetActualSummary {
         }
         return [min, max]
     }
-
-    private extractAccounts() {
-        let accountSet = new Set<string>
-        Object.keys(this.summary.actuals.Expenses).forEach(a => accountSet.add(a))
-        Object.keys(this.summary.budgets.Expenses).forEach(a => accountSet.add(a))
-        Object.keys(this.summary.actuals.Income).forEach(a => accountSet.add(a))
-        Object.keys(this.summary.budgets.Income).forEach(a => accountSet.add(a))
-
-        this.accounts = Array.from(accountSet)
-        this.accounts.sort()
-
-    }
-
-    private extractAccountHierarchy() {
-        let factory = new AccountFactory()
-
-        let rootAccount = factory.constructHierarchy(this.accounts)
-        this.accountHierarchy = rootAccount
-    }
-
-
-    getAccounts(): Array<string> {
-        return this.accounts
-    }
-    getIncomeAccountHierarchy(): Account {
-        return this.accountHierarchy.getChildAccount("Income")
-    }
-    getExpenseAccountHierarchy(): Account {
-        return this.accountHierarchy.getChildAccount("Expenses")
-    }
-    getIncome(year: string): AnnualComparison {
-        return new AnnualComparison(this.summary, this.accountHierarchy, "Income", year)
-    }
-
-    getExpenses(year: string): AnnualComparison {
-        return new AnnualComparison(this.summary, this.accountHierarchy, "Expenses", year)
-    }
-
-    getBudgetOverview(year: string): ProfitSummary {
-        let incomeSummary = new AnnualSummary(this.summary.budgets.Income, this.accountHierarchy, year)
-        let expensesSummary = new AnnualSummary(this.summary.budgets.Expenses, this.accountHierarchy,  year)
-        return new ProfitSummary(incomeSummary, expensesSummary)
-    }
-
-    getActualOverview(year: string): ProfitSummary {
-        let incomeSummary = new AnnualSummary(this.summary.actuals.Income, this.accountHierarchy,  year)
-        let expensesSummary = new AnnualSummary(this.summary.actuals.Expenses, this.accountHierarchy,  year)
-        return new ProfitSummary(incomeSummary, expensesSummary)
-    }
-
 }
-
-
-export class ProfitSummary {
-    constructor(private income: AnnualSummary, private expenses: AnnualSummary) {
-
-    }
-    getIncome(): AnnualSummary {
-        return this.income
-    }
-
-    getExpenses(): AnnualSummary {
-        return this.expenses
-    }
-    getProfit(month: MonthType): number {
-        return this.income.getYtDSum("Income", month) - this.expenses.getYtDSum("Expenses", month)
-    }
-}
-
-
-export class AnnualComparison {
-    private absoluteLimit = 200
-    private relativeLimit = 0.05
-    private budget: AnnualSummary
-    private actuals: AnnualSummary
-    
-    constructor(data: BudgetSummaryData, private accountHierarchy: Account, type: "Income" | "Expenses", private year: string) {
-        this.budget = new AnnualSummary(data.budgets[type], this.accountHierarchy,  year)
-        this.actuals = new AnnualSummary(data.actuals[type], this.accountHierarchy,  year)
-    }
-
-    getAccounts(): Array<string> {
-        let accounts = new Set<string>()
-        this.actuals.getAccounts().forEach(a => accounts.add(a))
-        this.budget.getAccounts().forEach(a => accounts.add(a))
-
-        let accountArr = Array.from(accounts)
-        accountArr.sort()
-        return accountArr
-    }
-
-    getActuals(): AnnualSummary {
-        return this.actuals
-    }
-    getBudget(): AnnualSummary {
-        return this.budget
-    }
-
-    isBudgetExceeded(account: string, month: MonthType) {
-        let absolute = this.getAbsoluteYtDDiff(account, month)
-        let relative = this.getRelativeYtDDiff(account, month)
-        let isExpense = account.startsWith("Expenses")
-        let isIncome = account.startsWith("Income")
-
-        if (isIncome) {
-            return (relative as number) < this.relativeLimit*-1 || (absolute as number) < this.absoluteLimit*-1
-        }
-
-        if (isExpense) {
-            return (relative as number) > this.relativeLimit || (absolute as number) > this.absoluteLimit 
-        }
-
-        return true;
-    }
-    getAbsoluteAnnualDiff(account: string): number {
-        return this.getAbsoluteYtDDiff(account, 12)
-    }
-
-    getAbsoluteYtDDiff(account: string, month: MonthType): number {
-        return this.getYtdDiff(account, month, this.absoluteDiffFunction)
-    }
-
-    getAbsoluteMonthlyDiff(account: string): Array<number> {
-        return this.getMonthlyDiff(account, this.absoluteDiffFunction)
-    }
-
-    private relativeDiffFunction(actuals: number, budget: number) {
-        if (Math.abs(budget) < 10e-9) 
-            return 1 // if budget 0 can only have 100% off 
-        return (actuals - budget) / budget
-    }
-
-    private absoluteDiffFunction(actuals: number, budget: number) {
-        return actuals - budget
-    }
-    private getYtdDiff(account: string, month: MonthType, diffFunction: (actuals: number, budget: number) => number) {
-        let sumBudget = this.budget.getYtDSum(account, month)
-        let sumActuals = this.actuals.getYtDSum(account, month)
-        return diffFunction(sumActuals, sumBudget)
-
-    }
-
-    private getMonthlyDiff(account: string, diffFunction: (actuals: number, budget: number) => number) {
-        let budget = this.budget.getMonthlyValues(account, 12)
-        let actuals = this.budget.getMonthlyValues(account, 12)
-
-        let output: Array<number> = []
-        for (let i = 0; i < budget.length; i++) {
-            output.push(diffFunction(actuals[i], budget[i]))
-        }
-
-        return output        
-    }
-    getRelativeAnnualDiff(account: string): number {
-        return this.getRelativeYtDDiff(account, 12)
-    }
-    getRelativeYtDDiff(account: string, month: MonthType): number {
-        return this.getYtdDiff(account, month, this.relativeDiffFunction)
-    }
-
-    getRelativeMonthlyDiff(account: string): Array<number> {
-        return this.getMonthlyDiff(account, this.relativeDiffFunction)
-
-    }
-
-}
-
-export class AnnualSummary {
-    private accounts: Array<string>
-
-    constructor(private data: AccountMap<number>, private accountHierarchy: Account, private year: string) {
-        this.calculateAccounts()
-    }
-
-    private calculateAccounts() {
-        console.log("Data: ", this.data)
-        let set = new Set<string>();
-
-        Object.keys(this.data).forEach(a => set.add(a))
-
-        let arr = Array.from(set)
-        arr.sort()
-        console.log("Accounts in Annual Summary ", this.accounts)
-        this.accounts = arr
-    }
-
-    getAccounts(): Array<string> {
-        return this.accounts
-    }
-
-    // Returns 0 iff the account or year do not exist
-    getAnnualSum(account: string): number {
-        return this.getYtDSum(account, 12)
-    }
-
-    getYtDSum(account: string, month: MonthType): number {
-        const accountMap = this.data
-
-        let sum = 0
-        if (!(account in accountMap && this.year in accountMap[account])) {
-            return 0
-        }
-
-        for (let i = 1; i <= month; i++) {
-            sum += accountMap[account][this.year][i as MonthType]
-        }
-
-        return sum
-
-    }
-
-    getMonthlyValuesOfChildren(account: string, month:MonthType) {
-        let children = this.accountHierarchy.getChildrenRecursive(account)
-        let output: Array<{name: string, fullName: string, data: Array<number>}> = []
-        for (let child of children) {
-            let values = this.getMonthlyValues(child.getFullName(), month)
-            output.push({
-                name: child.getName(),
-                fullName: child.getFullName(),
-                data: values
-            })
-        }
-        return output
-    }
-    getMonthlyValues(account: string, month: MonthType): Array<number> {
-        const type = account.split(":")[0] as "Income" | "Expenses"
-        const accountMap = this.data
-        
-        if (!(account in accountMap && this.year in accountMap[account])) {
-            let output: Array<number> = []
-            for (let i = 1; i <= month; i++) {
-                output.push(0)
-            }
-            return output as Array<number>
-        }
-    
-        let output: Array<number> = []
-        for (let i = 1; i<= month; i++) {
-            if (i in accountMap[account][this.year]) {
-                output.push(accountMap[account][this.year][i as MonthType])            
-            } else {
-                output.push(0)
-            }
-        }
-
-        return output
-    }
-}
-
-
-
 
 export class AccountFactory {
 
@@ -355,18 +344,13 @@ export class Account {
 
     getChildrenRecursive(account: string): Array<Account> {
         let split = account.split(":")
-        console.log("Starting recursive account search ", account)
         return this._getChildrenRecursive(split)
     }
 
     private _getChildrenRecursive(account: Array<string>): Array<Account> {
-        console.log("Recursive search", account, this.getFullName())
         if (account.length == 1) {
-            console.log("Returning for ", account[0], this.getFullName())
             return this.getChildAccount(account[0]).getChildren()
         } else {
-            console.log("Recursing for ", account[0], this.getFullName())
-            console.log("Map is: ", Object.keys(this.accountMap))
             let subAccounts = account.slice(1, account.length)
             return this.getChildAccount(account[0])._getChildrenRecursive(subAccounts)
         }

@@ -1,11 +1,13 @@
 import * as React from 'react';
-import AccountMapOverview from '../AccountMapOverview';
 import {Row, Col, Container} from 'react-bootstrap'
-import ProfitOverview from '../ProfitSummary';
-import { ProfitSummary } from '../../services/IncomeExpenseBudgetService';
+import ProfitOverview from '../generic/ProfitSummary';
+import { IncomeExpenseBudgetService } from '../../services/IncomeExpenseBudgetService';
+import { MonthType } from '../../util';
+import BudgetActualComparisonView from '../generic/BudgetActualComparison';
 interface ExpenseIncomeMapOverviewProps {
-    overview: ProfitSummary
+    overview: IncomeExpenseBudgetService
     year: string
+    ytd: MonthType
 }
 
 class BudgetOverview extends React.Component<ExpenseIncomeMapOverviewProps, {}> {
@@ -15,13 +17,16 @@ class BudgetOverview extends React.Component<ExpenseIncomeMapOverviewProps, {}> 
     if (!this.props.overview)
         return <div>No budget loaded yet...</div>
 
+    let profitOverview = this.props.overview.getIncExpProfitBudget(this.props.year, this.props.ytd)
+    let incomeSummary = this.props.overview.getBudgetIncomeSummary(this.props.year, this.props.ytd)
+    let expenseSummary = this.props.overview.getBudgetExpenseSummary(this.props.year, this.props.ytd)
     return <div className="p-2">
 
         <Container fluid className="p-0">
         <Row>
             <Col>
                 <h3>Profit</h3>
-                <ProfitOverview budget={this.props.overview} year={this.props.year} month={12} />
+                <ProfitOverview summary={profitOverview} />
             </Col>
             <Col>
             </Col>
@@ -29,11 +34,11 @@ class BudgetOverview extends React.Component<ExpenseIncomeMapOverviewProps, {}> 
         <Row>
             <Col>
                 <h2>Income</h2>
-                <AccountMapOverview ytdMonth={12} overview={this.props.overview.getIncome()} />
+                <BudgetActualComparisonView summary={incomeSummary} type={"Income"} />
             </Col>
             <Col>        
                 <h2>Expenses</h2>
-                <AccountMapOverview ytdMonth={12} overview={this.props.overview.getExpenses()} />
+                <BudgetActualComparisonView summary={expenseSummary} type={"Expenses"}/>
             </Col>
         </Row>
         </Container>

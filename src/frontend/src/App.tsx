@@ -33,7 +33,7 @@ class App extends React.Component<PropState, {}>  {
 
   getOverviewDisplayComponent() {
     console.log("Overview: ", this.props.budget)
-    return <BudgetOverview overview={this.props.budget.budgets.getBudgetOverview(this.props.filters.selectedYear)} year={this.props.filters.selectedYear} />
+    return <BudgetOverview overview={this.props.budget.budgets} year={this.props.filters.selectedYear} ytd={this.props.uislice.ytdMonth} />
   }
 
   getSpendingComparison() {

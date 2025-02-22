@@ -5,7 +5,7 @@ export interface ExpenseIncomeMap {
     Income: AccountMap<number>
 }
 
-export interface BudgetSummaryData {
+export interface BudgetActualsSummary {
     budgets: ExpenseIncomeMap
     actuals: ExpenseIncomeMap
 }
