@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { MonthType } from '../util'
+import { MonthType } from '../../util'
 import { Col, Container, Row } from 'react-bootstrap';
-import { BudgetActualComparisonData, BudgetActualComparisonSummary } from '../view_model/BudgetActualComparisonData';
-import { BudgetChartData } from '../view_model/BudgetChartData';
-import BudgetActualComparisonView, { ActionHandler } from './generic/BudgetActualComparison';
-import BudgetChart from './generic/BudgetChart';
-import { IncomeExpenseBudgetService } from '../services/IncomeExpenseBudgetService';
+import { BudgetActualComparisonSummary } from '../../view_model/BudgetActualComparisonData';
+import BudgetActualComparisonView from './BudgetActualComparison';
+import BudgetChart from './BudgetChart';
+import { IncomeExpenseBudgetService } from '../../services/IncomeExpenseBudgetService';
 
 
 interface Props {

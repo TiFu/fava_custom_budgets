@@ -3,8 +3,7 @@ import { MonthType } from '../../util'
 import { Col, Container, Row } from 'react-bootstrap';
 import { IncomeExpenseBudgetService } from '../../services/IncomeExpenseBudgetService';
 import ProfitSummary from '../generic/ProfitSummary';
-import BudgetActualComparisonView from '../generic/BudgetActualComparison';
-import MoneySummaryComponent from '../MoneySummaryComponent';
+import MoneySummaryComponent from '../generic/MoneySummaryComponent';
 
 
 interface Props {

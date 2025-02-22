@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { formatMoney, formatWithTabs, calculateAnnualSum, MonthType } from '../../util'
+import { formatMoney } from '../../util'
 import { BudgetActualProfitSummaryData, ProfitSummaryData } from '../../view_model/ProfitSummary'
 
 interface Props {

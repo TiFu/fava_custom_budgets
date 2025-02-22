@@ -10,7 +10,7 @@ interface Props {
 class BudgetDropdown extends React.Component<Props, {}> {
 
   render() {
-    let entries = []
+    let entries: Array<React.JSX.Element> = []
     for (let year of this.props.years) {
         entries.push(
             <Dropdown.Item eventKey={year} key={year}>{year}</Dropdown.Item>

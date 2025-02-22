@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { MonthType, convertToMonthName, formatMoney } from '../util';
-import { BreakdownTableData } from '../view_model/BreakdownTableData';
-import { MonthMap } from '../data_model/common';
+import { MonthType, convertToMonthName, formatMoney } from '../../util';
+import { BreakdownTableData } from '../../view_model/BreakdownTableData';
 
 interface BaseProps {
     breakdowntable: BreakdownTableData

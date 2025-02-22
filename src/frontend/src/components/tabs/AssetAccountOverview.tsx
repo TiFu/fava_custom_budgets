@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Row, Col, Container} from 'react-bootstrap'
-import BreakdownTable from '../BreakdownTable';
+import BreakdownTable from '../generic/BreakdownTable';
 import { AssetBudgetService } from '../../services/AssetBudgetService';
 import { MonthType } from '../../util';
 
