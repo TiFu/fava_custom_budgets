@@ -1,0 +1,342 @@
+option "operating_currency" "EUR"
+option "render_commas" "TRUE"
+2014-01-01 custom "fava-option" "invert-income-liabilities-equity" "True"
+2014-01-01 custom "fava-option" "indent" "4"
+
+
+2023-01-01 open Assets:Bank-Account EUR
+
+2023-01-01 open Income:Work EUR
+2023-01-01 open Income:Work:Salary EUR
+2023-01-01 open Income:Work:Bonus EUR
+
+2023-01-01 open Expenses:Groceries EUR
+2023-01-01 open Expenses:Public-Transportation EUR
+2023-01-01 open Expenses:Travel EUR
+
+2023-01-01 custom "income_expense_budget" "Income"  100 100 100  100   100   100   100   100   100    100    100    100
+
+2023-01-01 custom "income_expense_budget" "Income:Work:Salary"  5000 5000 5000  5000   5000   5000   5000   5000   5000    5000    5000    5000
+2023-01-01 custom "income_expense_budget" "Income:Work:Bonus"  0 0 0  0   0   0   0   0   0    0    0    10000
+
+2023-01-01 custom "income_expense_budget" "Expenses:Public-Transportation"  500 500 450  500   500   500   500   500   500    500    500    500
+2023-01-01 custom "income_expense_budget" "Expenses:Groceries"  300 300 300  300   350   300   300   300   300    300    300    300
+2023-01-01 custom "income_expense_budget" "Expenses:Travel"  0 0 0  0   0   0  3000   0   0    0    0    0
+
+2024-01-01 custom "income_expense_budget" "Income"  100 100 100  100   100   100   100   100   100    100    100    100
+
+2024-01-01 custom "income_expense_budget" "Income:Work:Salary"  7000 7000 7000  7000   7000   7500   7000   7000   7000    7000    7000    7000
+2024-01-01 custom "income_expense_budget" "Income:Work:Bonus"  0 0 0  0   0   0   0   0   0    0    0    20000
+
+2024-01-01 custom "income_expense_budget" "Expenses:Public-Transportation"  600 600 600  600   650   600   600   600   600    600    600    600
+2024-01-01 custom "income_expense_budget" "Expenses:Groceries"  400 400 400  400   400   400   450   500   500    500    500    500
+2024-01-01 custom "income_expense_budget" "Expenses:Travel"  0 0 0  0   0   0  3000   0   0    0    0    0
+
+2023-01-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-02-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-03-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-04-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-05-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-06-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-07-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-08-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-09-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-10-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-11-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-12-01 * "Work" "Salary"
+  Assets:Bank-Account              5300 EUR
+  Income:Work:Salary
+
+2023-12-01 * "Work" "Bonus"
+  Assets:Bank-Account              9583 EUR
+  Income:Work:Bonus
+
+
+
+2023-01-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-02-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-03-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-04-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-05-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-06-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-07-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-08-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-09-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-10-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-11-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+2023-12-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              480 EUR
+  Assets:Bank-Account
+
+
+2023-01-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-02-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-03-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-04-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-05-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-06-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-07-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-08-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-09-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-10-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-11-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-12-01 * "Work" "Lidl"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2023-01-01 * "Work" "Travel"
+  Expenses:Travel              2000 EUR
+  Assets:Bank-Account
+
+
+;; 2024
+
+2024-01-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-02-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-03-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-04-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-05-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-06-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-07-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-08-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-09-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-10-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-11-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+
+2024-12-01 * "Work" "Salary"
+  Assets:Bank-Account              6753 EUR
+  Income:Work:Salary
+  
+
+2024-01-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-02-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-03-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-04-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-05-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-06-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-07-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-08-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-09-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-10-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-11-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-12-01 * "Work" "Groceries"
+  Expenses:Groceries              335 EUR
+  Assets:Bank-Account
+
+2024-10-01 * "Work" "Travel"
+  Expenses:Travel              8000 EUR
+  Assets:Bank-Account
+
+
+
+2024-01-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-02-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-03-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-04-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-05-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-06-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-07-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-08-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-09-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-10-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-11-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account
+
+2024-12-01 * "Work" "Bus ticket"
+  Expenses:Public-Transportation              475 EUR
+  Assets:Bank-Account

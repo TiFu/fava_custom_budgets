@@ -27,14 +27,12 @@ class BudgetFavaPlugin(FavaExtensionBase):
     expensesSummary = None
 
     def after_load_file(self):
-        print("Fava Ledger " + str(self.ledger))
         self.budgetSummary = self.budgetLoader.loadLedger(self.ledger)
         self.incomeSummary = self.incomeActualsLoader.loadLedger(self.ledger)
         self.expensesSummary = self.expensesActualsLoader.loadLedger(self.ledger)
 
         favaLedger = FavaLedgerHelper(self.ledger)
         self.assetBudgetInformation = self.assetBudgetLoader.loadLedger(favaLedger)
-        #print(self.assetBudgetInformation)
         self.assetBudgetReportService = AssetBudgetReportService(self.assetBudgetInformation)
         self.budgetReportService = IncomeExpenseReportService(self.budgetSummary, self.incomeSummary, self.expensesSummary)
 
@@ -72,7 +70,6 @@ class BudgetFavaPlugin(FavaExtensionBase):
             "accounts": self.assetBudgetReportService.getBudgetedAccounts(),
             "budgets": self.assetBudgetReportService.getBudgets().getSummary()
         }
-        print(result)
         return result
 
     @extension_endpoint("budget")

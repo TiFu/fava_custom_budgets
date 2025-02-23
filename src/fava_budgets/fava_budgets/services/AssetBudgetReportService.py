@@ -22,15 +22,15 @@ class AssetBudgetReportService:
         return self.budgetBalances
 
     def getAccountBalances(self): 
-        print(self.balances)
+        #print(self.balances)
         return self.balances
     
     def getBudgets(self):
-        print(self.budget)
+        #print(self.budget)
         return self.budget
 
     def getBudgetedAccounts(self):
-        print(self.accounts)
+        #print(self.accounts)
         return self.accounts
 
     def _calculateBalances(self):
@@ -64,9 +64,9 @@ class AssetBudgetReportService:
         # TODO: need to validate whether balances are actually correctly summed up... 
         # This may not be the case...especially across years...
         # Actual balances
-        print(self.balances)
-        print(minYear)
-        print(maxYear)
+        #print(self.balances)
+        #print(minYear)
+        #print(maxYear)
         for account in self.balances.keys():
             for year in range(minYear, maxYear+1):
                 if year not in self.balances[account]:
@@ -159,10 +159,10 @@ class AssetBudgetReportService:
             if key.startswith("budget_"):
                 name = key.replace("budget_", "")
                 val = meta[key]
-                print("Balance ++ " + str(val))
+                #print("Balance ++ " + str(val))
                 totalBudget += val
 
-        print("Balance: " + str(balance) + " / totalBudget " + str(totalBudget))
+        #print("Balance: " + str(balance) + " / totalBudget " + str(totalBudget))
         return abs(totalBudget - balance) < 10e-9, totalBudget, balance
 
 

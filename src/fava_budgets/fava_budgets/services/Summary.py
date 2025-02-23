@@ -99,10 +99,16 @@ class CostSummary:
 
     def printBudget(self):
         for account in self.budget.keys():
-            print(account, end="    ")
+            print(account, end="\n")
             for year in self.budget[account].keys():
-                print("    " + year  +": ", end = "")
+                print("    BASE " + str(year)  +": ", end = "")
                 for month in self.budget[account][year].keys():
                     print(self.budget[account][year][month], end="    ")
-            print("")
+                print("")
+                print("    ACCC " + str(year)  +": ", end = "")
+                for month in self.accumulatedBudget[account][year].keys():
+                    print(self.accumulatedBudget[account][year][month], end="    ")
+                print("")
 
+                print("")
+            print("")
