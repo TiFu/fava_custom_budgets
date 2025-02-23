@@ -56,7 +56,7 @@ class AssetBudgetReportService:
                 for key in posting.meta.keys():
                     if key.startswith("budget_"):
                         name = key.replace("budget_", "")
-                        budgetVal = posting.meta[key]
+                        budgetVal = self._convertActualsToBaseCurrency(posting.meta[key], posting)
                         budgetBalance = self._increaseBalance(year, month, account, name, budgetVal)
                         if budgetBalance < 0:
                             errors.append(BudgetError(entry.meta, "Budgeted amount exceeds balance for " + name + ": " + str(budgetBalance - budgetVal) + " available vs " + str(budgetVal) + " transferred.", entry))
@@ -147,9 +147,8 @@ class AssetBudgetReportService:
 
         return errors
     def _isValidPosting(self, posting):
-        pass
         meta = posting.meta
-        balance = self._convertToBaseCurrency(posting)
+        balance = posting.units.number 
 
         if meta is None:
             return False, float("nan"), balance
@@ -162,9 +161,15 @@ class AssetBudgetReportService:
                 #print("Balance ++ " + str(val))
                 totalBudget += val
 
+        convertedBalance = self._convertToBaseCurrency(posting)
+        convertedActuals = self._convertActualsToBaseCurrency(totalBudget, posting)
         #print("Balance: " + str(balance) + " / totalBudget " + str(totalBudget))
-        return abs(totalBudget - balance) < 10e-9, totalBudget, balance
+        return abs(totalBudget - balance) < 10e-9, convertedActuals, convertedBalance
 
+    def _convertActualsToBaseCurrency(self, actuals, posting):
+        currency = posting.units.currency
+        price = posting.cost.number if posting.cost is not None else 1
+        return actuals * price
 
         # TODO iterate
     def _convertToBaseCurrency(self, posting):

@@ -1,0 +1,38 @@
+option "operating_currency" "EUR"
+option "render_commas" "TRUE"
+2014-01-01 custom "fava-option" "invert-income-liabilities-equity" "True"
+2014-01-01 custom "fava-option" "indent" "4"
+
+;; TODO: expand with foreign currency accounts & conversion to currency
+;; might need additional errors (e.g., conversion unclear)
+
+1867-07-01 commodity XYZ_SHARES
+  
+2023-01-01 open Assets:Bank-Account EUR
+2023-01-01 open Assets:Fixed-Deposits EUR
+    budgeted: "true"
+2023-01-01 open Assets:Foreign-currency-deposit USD
+    budgeted: "true"
+2023-01-01 open Assets:Brokerage XYZ_SHARES
+    budgeted: "true"
+2023-01-01 open Expenses:Brokerage-Fees EUR
+
+2023-01-01 custom "asset_budget" "saving-goal-1" 3000  300 350   300   300   300   300   300   300   300    300    300    300
+2023-01-01 custom "asset_budget" "saving-goal-2" 2000  200 200   200   200   200   200   200   200   200    200    200    200
+2023-01-01 custom "asset_budget" "saving-goal-3" 1000  100 100   100   100   100   100   100   100   100    100    100    100
+2023-01-01 custom "asset_budget" "saving-goal-4" 1000  100 100   100   100   100   100   100   100   100    100    100    100
+
+2023-10-01 * "Work" "Salary"
+  Assets:Bank-Account              -5000 EUR
+  Assets:Fixed-Deposits
+
+2023-10-01 * "Work" "Salary"
+  Assets:Bank-Account              -1005 EUR
+  Assets:Brokerage                  100 XYZ_SHARES {10 EUR}
+    saving-goal-3: 100
+  Expenses:Brokerage-Fees             5 EUR
+
+2023-10-01 * "Work" "Salary"
+  Assets:Bank-Account              -5000 EUR
+  Assets:Foreign-currency-deposit   1000 USD {5 EUR}
+    saving-goal-4: 1000

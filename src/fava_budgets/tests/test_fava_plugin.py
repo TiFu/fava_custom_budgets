@@ -74,3 +74,9 @@ class TestFavaPlugin(unittest.TestCase):
 
         self._validate(expected, result)
  
+    def test_bootstrapAssetBudget(self):
+        assetBudget = self.favaPlugin.bootstrapAssetBudget()
+
+        for entry in ["budgetBalance", "accountBalance", "accounts", "budgets"]:
+            self.assertTrue(entry in assetBudget, "Expected " + entry + " to be present in " + str(assetBudget.keys()))
+
