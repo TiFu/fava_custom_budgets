@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Highcharts from 'highcharts'
-import { HighchartsReact } from 'highcharts-react-official';
+import HighchartsReact from 'highcharts-react-official';
 import { BudgetChartData } from '../../view_model/BudgetChartData';
 
 let options = {

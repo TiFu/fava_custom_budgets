@@ -4,16 +4,24 @@ from fava.core import FavaLedger
 import os
 import unittest
 from datetime import datetime
+import json
+import decimal
 
 class TestFavaPlugin(unittest.TestCase):
 
     def setUp(self):
         path = os.path.abspath("../../resources/beancount_inc_exp/main.bean")
-        self.ledger = FavaLedger(path)
+        ledger = FavaLedger(path)
 
-        self.favaPlugin = BudgetFavaPlugin(self.ledger)
-        self.favaPlugin.ledger = self.ledger
+        self.favaPlugin = BudgetFavaPlugin(ledger)
+        self.favaPlugin.ledger = ledger
         self.favaPlugin.after_load_file()
+
+        path = os.path.abspath("../../resources/beancount_assets/main.bean")
+        ledger = FavaLedger(path)
+        self.assetFavaPlugin = BudgetFavaPlugin(ledger)
+        self.assetFavaPlugin.ledger = ledger
+        self.assetFavaPlugin.after_load_file()
 
     def _validate(self, expected, result):
         currentYear = datetime.now().year
@@ -63,6 +71,18 @@ class TestFavaPlugin(unittest.TestCase):
         self._validate(expected, result)
     def test_bootstrapIncomeExpenseBudget_actualsExpenses(self):
         result = self.favaPlugin.bootstrapIncomeExpenseBudget()
+        class SetEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, set):
+                    return list(obj)
+                if isinstance(obj, decimal.Decimal):
+                    return float(obj)
+                return json.JSONEncoder.default(self, obj)
+
+        data_str = json.dumps(result, cls=SetEncoder, indent=4)
+        print(data_str)
+
+
         result = result["actuals"]["Expenses"]["Expenses"]
         expected = [
             [480+335] * 12,
@@ -75,7 +95,17 @@ class TestFavaPlugin(unittest.TestCase):
         self._validate(expected, result)
  
     def test_bootstrapAssetBudget(self):
-        assetBudget = self.favaPlugin.bootstrapAssetBudget()
+        assetBudget = self.assetFavaPlugin.bootstrapAssetBudget()
+        class SetEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, set):
+                    return list(obj)
+                if isinstance(obj, decimal.Decimal):
+                    return float(obj)
+                return json.JSONEncoder.default(self, obj)
+
+        data_str = json.dumps(assetBudget, cls=SetEncoder, indent=4)
+        #print(data_str)
 
         for entry in ["budgetBalance", "accountBalance", "accounts", "budgets"]:
             self.assertTrue(entry in assetBudget, "Expected " + entry + " to be present in " + str(assetBudget.keys()))

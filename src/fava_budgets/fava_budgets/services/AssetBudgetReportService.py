@@ -1,7 +1,17 @@
 import math
 import collections
+import json
 
 BudgetError = collections.namedtuple("BudgetError", "source message entry")
+import decimal
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+        if isintstance(o, set): 
+            return list(o)
+        return super().default(o)
+
 
 class AssetBudgetReportService:
 
@@ -9,7 +19,7 @@ class AssetBudgetReportService:
         self.accounts = assetBudgetInformation["accounts"]
         self.budget = assetBudgetInformation["budget"]
         self.transactions = assetBudgetInformation["budgetedTransactions"] # { entry: Entry, postings: [postings]}
-        self.balances = {}
+        self.accountBalances = {}
         self.budgetBalances = {}
         self.errors = []
         self.errors += self._calculateBalances()
@@ -22,8 +32,8 @@ class AssetBudgetReportService:
         return self.budgetBalances
 
     def getAccountBalances(self): 
-        #print(self.balances)
-        return self.balances
+        #print(self.accountBalances)
+        return self.accountBalances
     
     def getBudgets(self):
         #print(self.budget)
@@ -34,7 +44,7 @@ class AssetBudgetReportService:
         return self.accounts
 
     def _calculateBalances(self):
-        self.balances = {}
+        self.accountBalances = {}
         errors = []
         minYear = 10000
         maxYear = 0
@@ -60,57 +70,73 @@ class AssetBudgetReportService:
                         budgetBalance = self._increaseBalance(year, month, account, name, budgetVal)
                         if budgetBalance < 0:
                             errors.append(BudgetError(entry.meta, "Budgeted amount exceeds balance for " + name + ": " + str(budgetBalance - budgetVal) + " available vs " + str(budgetVal) + " transferred.", entry))
-        
-        # TODO: need to validate whether balances are actually correctly summed up... 
-        # This may not be the case...especially across years...
+        json_formatted_str = json.dumps(self.accountBalances, indent=2, cls=DecimalEncoder)
+        print(json_formatted_str) 
+
         # Actual balances
-        #print(self.balances)
-        #print(minYear)
-        #print(maxYear)
-        for account in self.balances.keys():
+        budgetSet = set()
+
+        for account in self.accountBalances.keys():
             for year in range(minYear, maxYear+1):
-                if year not in self.balances[account]:
-                    self.balances[account][year] = {}
+                if year not in self.accountBalances[account]:
+                    self.accountBalances[account][year] = {}
 
                 for month in range(1,13):
-                    if month == 1 and month not in self.balances[account][year] and year == minYear:
-                        self.balances[account][year][month] = {}
-                    elif month == 1 and month not in self.balances[account][year]:
-                        self.balances[account][year][month] = self.balances[account][year-1][12]
-                    elif month not in self.balances[account][year]:
-                        self.balances[account][year][month] = self.balances[account][year][month-1]
+                    if month == 1 and month not in self.accountBalances[account][year] and year == minYear:
+                        self.accountBalances[account][year][month] = {}
+                    elif month == 1 and month not in self.accountBalances[account][year]:
+                        self.accountBalances[account][year][month] = self.accountBalances[account][year-1][12]
+                    elif month not in self.accountBalances[account][year]:
+                        self.accountBalances[account][year][month] = self.accountBalances[account][year][month-1]
                     elif year == minYear and month == 1:
                         pass
                     else:
                         priorYear = year - 1 if month == 1 else year
                         priorMonth = 12 if month == 1 else month-1
 
-                        for type in self.balances[account][year][month]:
-                            if type in self.balances[account][priorYear][priorMonth]:
-                                prior = self.balances[account][priorYear][priorMonth][type] 
+                        types = set(self.accountBalances[account][year][month].keys())
+                        if priorMonth in self.accountBalances[account][priorYear]:
+                            types = types.union(set(self.accountBalances[account][priorYear][priorMonth].keys()))
+                        for type in types:
+                            if type in self.accountBalances[account][priorYear][priorMonth]:
+                                prior = self.accountBalances[account][priorYear][priorMonth][type] 
                             else:
                                 prior = 0
-                            self.balances[account][year][month][type] = prior + self.balances[account][year][month][type]
-        
+                            if type in self.accountBalances[account][year][month]:
+                                thisBalance = self.accountBalances[account][year][month][type]
+                            else:
+                                thisBalance = 0
+                            self.accountBalances[account][year][month][type] = prior + thisBalance
+                    budgetSet.update(set(self.accountBalances[account][year][month].keys()))
+
+        # Calculate budget balances
+        self.budgetBalances = {}
+        for account in self.accountBalances:
+            for year in range(minYear, maxYear+1):
+                for month in range(1, 12+1):
+                    for budget in self.accountBalances[account][year][month]:
+                        val = self._getAccountValue(year, month, account, budget)
+                        self._increaseBudgetBalance(year, month, account, budget, val)
+
+        print("Budget Balances")
+        json_formatted_str = json.dumps(self.budgetBalances, indent=2, cls=DecimalEncoder)
+        print(json_formatted_str) 
+
         return errors
 
-    def _increaseBalance(self, year, month, account, type, value):
-        # Update account budget balance for the month
-        if account not in self.balances:
-            self.balances[account] = {}
-        
-        if year not in self.balances[account]:
-            self.balances[account][year] = {}
-        
-        if month not in self.balances[account][year]:
-            self.balances[account][year][month] = {}
+    def _getAccountValue(self, year, month, account, budget):
+        if account not in self.accountBalances:
+            return 0
+        elif year not in self.accountBalances[account]:
+            return 0
+        elif month not in self.accountBalances[account][year]:
+            return 0
+        elif budget not in self.accountBalances[account][year][month]:
+            return 0
+        else:
+            return self.accountBalances[account][year][month][budget]
 
-        if type not in self.balances[account][year][month]:
-            self.balances[account][year][month][type] = 0
-
-        self.balances[account][year][month][type] += value
-
-        # Update budget overall balance for the month
+    def _increaseBudgetBalance(self, year, month, account, type, value):
         name = type
         if name not in self.budgetBalances:
             self.budgetBalances[name] = {}
@@ -123,7 +149,25 @@ class AssetBudgetReportService:
 
         self.budgetBalances[name][year][month] += value
 
-        return self.balances[account][year][month][type]
+
+    def _increaseBalance(self, year, month, account, type, value):
+        # Update account budget balance for the month
+        if account not in self.accountBalances:
+            self.accountBalances[account] = {}
+        
+        if year not in self.accountBalances[account]:
+            self.accountBalances[account][year] = {}
+        
+        if month not in self.accountBalances[account][year]:
+            self.accountBalances[account][year][month] = {}
+
+        if type not in self.accountBalances[account][year][month]:
+            self.accountBalances[account][year][month][type] = 0
+
+        self.accountBalances[account][year][month][type] += value
+
+        # Update budget overall balance for the month
+        return self.accountBalances[account][year][month][type]
 
     def _validateBalances(self):
         pass

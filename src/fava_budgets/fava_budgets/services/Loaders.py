@@ -98,6 +98,18 @@ class AssetBudgetLoader:
         entries = []
         # Parse custom
         customs = ledger.getCustom()
+
+        # TODO: Rewrite to parse 
+        #   asset_budget, asset_budget_one_off (to initiate and/or process)
+        #   Then also allow multiple asset_budget feeding the same (for ease of use, eg interest income)
+        #   then re-parse this as a cumulative value
+        #   TODO: how to handle multiple different asset types, eg Money Market Fund
+        #       "Contribution" vs "Value" -> should budget account for value growth over time?
+        #   This would require 2 changes
+        #       (A) Add some kind of "percentage of existing assets growth"
+        #       (B) Adjust value calculation to be *asset value as of end of month (-> prior assets at end of month value + this month's contributions)
+        #
+
         for entry in customs:
             if entry.type == "asset_budget": # Structure is budget_name start_value january_value february_value [...] december_value
                 year = entry.date.year
