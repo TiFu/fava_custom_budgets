@@ -18,7 +18,7 @@ class NestedDictionary:
         return level.keys()
 
 
-    def isInDict(self, *args):
+    def hasKey(self, *args):
         level = self.content
         for arg in args:
             if arg in level:

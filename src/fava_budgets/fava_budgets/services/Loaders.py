@@ -98,21 +98,22 @@ class PriceDatabaseLoader:
                 
                 outputTable[currency].append((trx.date, cost))
                 #print("Adding " + str(currency) + " for " + str(cost))
-        return PriceDatabase(outputTable)
+        return PriceDatabase(outputTable, self.targetCurrency)
 
 
 class AssetBudgetLoader:   
     def loadLedger(self, ledgerHelper):
 
-        budgetedAccounts = self._loadAccounts(ledgerHelper)
+        budgetedAccounts, accountErrors = self._loadAccounts(ledgerHelper)
         budgetEntries, budgetDetails, errors = self._loadBudgets(ledgerHelper)
         budgetedTransactions = self._loadTransactions(ledgerHelper, budgetedAccounts)
         #print(budgetedTransactions)
+        finalErrors = accountErrors + errors
         return {
             "budget": CostSummary(budgetEntries),
             "budgetDetails": budgetDetails,
             "accounts": budgetedAccounts,
-            "errors": errors,
+            "errors": finalErrors,
             "budgetedTransactions": budgetedTransactions
         }
 
@@ -136,12 +137,16 @@ class AssetBudgetLoader:
 
     def _loadAccounts(self, ledger):
         entries = []
+        errors = []
         # Parse custom
         accounts = ledger.getOpen()
         for entry in accounts:
             if "budgeted" in entry.meta:
                 entries.append(entry.account)
-        return set(entries)
+                if len(entry.currencies) != 1:
+                    errors.append(BudgetError(entry.meta, "Multiple currencies found in account " + str(entry.account) + ": " + str(entry.currencies), entry))
+
+        return set(entries), errors
 
     def _parseAssetBudget(self, entry):
         errors = []

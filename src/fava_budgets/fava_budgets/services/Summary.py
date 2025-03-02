@@ -3,8 +3,9 @@ from datetime import datetime
 class PriceDatabase:
 
     # Prices is a tuple(date, price)
-    def __init__(self, pricesByCurrency):
+    def __init__(self, pricesByCurrency, baseCurrency):
         self.bst = {}
+        self.baseCurrency = baseCurrency
         self._initBinarySearchTables(pricesByCurrency)
 
     def _initBinarySearchTables(self, pricesByCurrency):
@@ -13,14 +14,22 @@ class PriceDatabase:
             prices.sort(key=lambda x: x[0])
             self.bst[currency] = prices
 
+    def convertPrice(self, currency, searchDate, balance):
+        conversionRate = self.lookupNearestPrice(currency, searchDate)
+        convertedBalance = balance * conversionRate
+        return convertedBalance
+
     def lookupNearestPrice(self, currency, searchDate):
+        if currency == self.baseCurrency:
+            return 1
+
         priceList = self.bst[currency]
         lowerIndex = 0
         upperIndex = len(priceList) - 1
 
         while abs(upperIndex - lowerIndex) > 1:
             nextIndex = lowerIndex + (upperIndex - lowerIndex + 1) // 2
-            print(str(lowerIndex) + " < " + str(nextIndex) + " < " + str(upperIndex))
+            #print(str(lowerIndex) + " < " + str(nextIndex) + " < " + str(upperIndex))
             element = priceList[nextIndex]
             date = element[0]
             if searchDate < date:

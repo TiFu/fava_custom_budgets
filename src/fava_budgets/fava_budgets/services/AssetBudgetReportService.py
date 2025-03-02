@@ -1,5 +1,6 @@
 import math
 import collections
+from datetime import date
 import json
 from fava_budgets.services.NestedDictionary import NestedDictionary
 BudgetError = collections.namedtuple("BudgetError", "source message entry")
@@ -20,8 +21,8 @@ class AssetBudgetReportService:
         self.accounts = assetBudgetInformation["accounts"]
         self.budget = assetBudgetInformation["budget"]
         self.transactions = assetBudgetInformation["budgetedTransactions"] # { entry: Entry, postings: [postings]}
-        self.accountBalances = {}
-        self.budgetBalances = {}
+        self.accountBalances = NestedDictionary(0)
+        self.budgetBalances = NestedDictionary(0)
         self.errors = []
         self.errors += self._calculateBalances()
         self.errors += self._validateTransactions()
@@ -30,11 +31,11 @@ class AssetBudgetReportService:
         return self.errors
 
     def getBudgetBalances(self):
-        return self.budgetBalances
+        return self.budgetBalances.getDict()
 
     def getAccountBalances(self): 
         #print(self.accountBalances)
-        return self.accountBalances
+        return self.accountBalancesConverted.getDict()
     
     def getBudgets(self):
         #print(self.budget)
@@ -44,8 +45,7 @@ class AssetBudgetReportService:
         #print(self.accounts)
         return self.accounts
 
-    def _calculateBalances(self):
-        self.accountBalances = {}
+    def _processTransactions(self):
         errors = []
         minYear = 10000
         maxYear = 0
@@ -61,123 +61,101 @@ class AssetBudgetReportService:
 
             month = entry.date.month
             
-            # (1) Convert to NestedDictionary for simplicity
-            # (2) In original one by account calculate balance in "acc currency"; assume accounts only have 1 currency
-            # (3) use a separate nested dictionary for step (2)
-            # (3) In the post "accumulation step", use both NestedDictionaries; one in acc currency, other in "base currency"
-            # (4) Validate "budgeted accounts" only have 1 currency -> otherwise error
             # (5) Allow setting base currency (e.g. fetch from first operating currency)
-            
+
             for posting in transaction["budgetedPostings"]:
-                val = self._convertToBaseCurrency(posting)
+                currency = posting.units.currency
+                val = posting.units.number 
                 account = posting.account
-                actualBalance = self._increaseAccountBalance(year, month, account, "actual", val)
+
+                # TODO: add check whether already exists & differs from currency -> if so, add error
+                self.accountCurrencies[account] = currency
+
+                actualBalance = self.accountBalances.increase(val, account, year, month, "actual") 
                 #print("budgeted posting meta")
                 #print(posting.meta)
 
                 for key in posting.meta.keys():
                     if key.startswith("budget_"):
                         name = key.replace("budget_", "")
-                        budgetVal = self._convertActualsToBaseCurrency(posting.meta[key], posting)
-                        self._increaseAccountBalance(year, month, account, name, budgetVal)
+                        budgetVal = posting.meta[key] 
+                        self.accountBalances.increase(budgetVal, account, year, month, name)
 
                         budgetBalanceTracker.increase(budgetVal, name)
                         budgetBalance = budgetBalanceTracker.get(name)
 
                         if budgetBalance < 0:
                             errors.append(BudgetError(entry.meta, "Budgeted amount exceeds balance for " + name + ": " + str(budgetBalance - budgetVal) + " available vs " + str(budgetVal) + " transferred.", entry))
+        
+        return errors, minYear, maxYear
 
-        # Actual balances
-        budgetSet = set()
+    def _calculateBalances(self):
+        self.accountBalances = NestedDictionary(0)
+        self.accountBalancesConverted = NestedDictionary(0)
 
-        for account in self.accountBalances.keys():
-            for year in range(minYear, maxYear+1):
-                if year not in self.accountBalances[account]:
-                    self.accountBalances[account][year] = {}
+        self.accountCurrencies = {}
+        self.convertedAccountBalances = NestedDictionary(0)
 
-                for month in range(1,13):
-                    if month == 1 and month not in self.accountBalances[account][year] and year == minYear:
-                        self.accountBalances[account][year][month] = {}
-                    elif month == 1 and month not in self.accountBalances[account][year]:
-                        self.accountBalances[account][year][month] = self.accountBalances[account][year-1][12]
-                    elif month not in self.accountBalances[account][year]:
-                        self.accountBalances[account][year][month] = self.accountBalances[account][year][month-1]
-                    elif year == minYear and month == 1:
-                        pass
-                    else:
-                        priorYear = year - 1 if month == 1 else year
-                        priorMonth = 12 if month == 1 else month-1
+        errors = []
 
-                        types = set(self.accountBalances[account][year][month].keys())
-                        if priorMonth in self.accountBalances[account][priorYear]:
-                            types = types.union(set(self.accountBalances[account][priorYear][priorMonth].keys()))
-                        for type in types:
-                            if type in self.accountBalances[account][priorYear][priorMonth]:
-                                prior = self.accountBalances[account][priorYear][priorMonth][type] 
-                            else:
-                                prior = 0
-                            if type in self.accountBalances[account][year][month]:
-                                thisBalance = self.accountBalances[account][year][month][type]
-                            else:
-                                thisBalance = 0
-                            self.accountBalances[account][year][month][type] = prior + thisBalance
-                    budgetSet.update(set(self.accountBalances[account][year][month].keys()))
+        processErrors, minYear, maxYear = self._processTransactions()
+        errors.extend(processErrors)
 
+        accumulationErrors = self._accumulateAccountBalances(minYear, maxYear)
+        errors.extend(accumulationErrors)
+
+        budgetErrors = self._calculateBudgetBalances(minYear, maxYear)
+        errors.extend(budgetErrors)
+
+        #print(json.dumps(self.accountBalancesConverted.getDict(), indent=2, cls=DecimalEncoder))
+        #print("Done calculating balances")
+        #print("-----------------------------------------------------------------------------------")
+        return errors
+
+    def _calculateBudgetBalances(self, minYear, maxYear):
+        errors = []
         # Calculate budget balances
-        self.budgetBalances = {}
-        for account in self.accountBalances:
+        self.budgetBalances = NestedDictionary(0)
+        for account in self.accountBalances.getKeys():
             for year in range(minYear, maxYear+1):
                 for month in range(1, 12+1):
-                    for budget in self.accountBalances[account][year][month]:
-                        val = self._getAccountValue(year, month, account, budget)
-                        self._increaseBudgetBalance(year, month, account, budget, val)
+                    for budget in self.accountBalancesConverted.getKeys(account, year, month):
+                        val = self.accountBalancesConverted.get(account, year, month, budget)
+                        self.budgetBalances.increase(val, budget, year, month)
 
         return errors
 
-    def _getAccountValue(self, year, month, account, budget):
-        if account not in self.accountBalances:
-            return 0
-        elif year not in self.accountBalances[account]:
-            return 0
-        elif month not in self.accountBalances[account][year]:
-            return 0
-        elif budget not in self.accountBalances[account][year][month]:
-            return 0
-        else:
-            return self.accountBalances[account][year][month][budget]
+    def _accumulateAccountBalances(self, minYear, maxYear):
+        errors = []
 
-    def _increaseBudgetBalance(self, year, month, account, type, value):
-        name = type
-        if name not in self.budgetBalances:
-            self.budgetBalances[name] = {}
+        for account in self.accountBalances.getKeys():
+            for year in range(minYear, maxYear+1):
+                for month in range(1,13):
+                    priorYear = year - 1 if month == 1 else year
+                    priorMonth = 12 if month == 1 else month-1
 
-        if year not in self.budgetBalances[name]:
-            self.budgetBalances[name][year] = {}
-        
-        if month not in self.budgetBalances[name][year]:
-            self.budgetBalances[name][year][month] = 0
+                    # Get all budgets in prior Month + this month
+                    budgetSets = set(self.accountBalances.getKeys(account, year, month))
+                    priorMonthBudgets = set(self.accountBalances.getKeys(account, priorYear, priorMonth))
+                    budgetSets = budgetSets.union(priorMonthBudgets)
 
-        self.budgetBalances[name][year][month] += value
+                    for budgetName in budgetSets:
+                        priorBalance = self.accountBalances.get(account, priorYear, priorMonth, budgetName)
+                        thisBalance = self.accountBalances.get(account, year, month, budgetName)
 
+                        newBalance = priorBalance + thisBalance
+                        self.accountBalances.set(newBalance, account, year, month, budgetName)
 
-    def _increaseAccountBalance(self, year, month, account, type, value):
-        # Update account budget balance for the month
-        if account not in self.accountBalances:
-            self.accountBalances[account] = {}
-        
-        if year not in self.accountBalances[account]:
-            self.accountBalances[account][year] = {}
-        
-        if month not in self.accountBalances[account][year]:
-            self.accountBalances[account][year][month] = {}
+                        newBalanceConverted = self._convertBalance(account, date(year, month, 28), newBalance)
+                        self.accountBalancesConverted.set(newBalanceConverted, account, year, month, budgetName)
+                        # Convert balance
+                        # TODO: fetch account currency, convert currency
+        return errors
 
-        if type not in self.accountBalances[account][year][month]:
-            self.accountBalances[account][year][month][type] = 0
-
-        self.accountBalances[account][year][month][type] += value
-
-        # Update budget overall balance for the month
-        return self.accountBalances[account][year][month][type]
+    def _convertBalance(self, account, date, balance):
+        currency = self.accountCurrencies[account]
+        result = self.priceDatabase.convertPrice(currency, date, balance)
+        return result
 
     def _validateBalances(self):
         pass
@@ -215,21 +193,7 @@ class AssetBudgetReportService:
                 #print("Balance ++ " + str(val))
                 totalBudget += val
 
-        convertedBalance = self._convertToBaseCurrency(posting)
-        convertedActuals = self._convertActualsToBaseCurrency(totalBudget, posting)
+        convertedBalance = posting.units.number
+        convertedActuals = totalBudget
         #print("Balance: " + str(balance) + " / totalBudget " + str(totalBudget))
         return abs(totalBudget - balance) < 10e-9, convertedActuals, convertedBalance
-
-    def _convertActualsToBaseCurrency(self, actuals, posting):
-        currency = posting.units.currency
-        price = posting.cost.number if posting.cost is not None else 1
-        return actuals * price
-
-        # TODO iterate
-    def _convertToBaseCurrency(self, posting):
-        currency = posting.units.currency
-        units = posting.units.number
-
-        price = posting.cost.number if posting.cost is not None else 1
-
-        return units * price
