@@ -1,7 +1,7 @@
 import math
 import collections
 import json
-
+from fava_budgets.services.NestedDictionary import NestedDictionary
 BudgetError = collections.namedtuple("BudgetError", "source message entry")
 import decimal
 class DecimalEncoder(json.JSONEncoder):
@@ -48,6 +48,10 @@ class AssetBudgetReportService:
         errors = []
         minYear = 10000
         maxYear = 0
+
+        budgetBalanceTracker = NestedDictionary(0)
+
+        # Assumption: transactions ordered by date (guaranteed by beancount)
         for transaction in self.transactions:
             entry = transaction["entry"]
             year = entry.date.year
@@ -67,7 +71,11 @@ class AssetBudgetReportService:
                     if key.startswith("budget_"):
                         name = key.replace("budget_", "")
                         budgetVal = self._convertActualsToBaseCurrency(posting.meta[key], posting)
-                        budgetBalance = self._increaseAccountBalance(year, month, account, name, budgetVal)
+                        self._increaseAccountBalance(year, month, account, name, budgetVal)
+
+                        budgetBalanceTracker.increase(budgetVal, name)
+                        budgetBalance = budgetBalanceTracker.get(name)
+
                         if budgetBalance < 0:
                             errors.append(BudgetError(entry.meta, "Budgeted amount exceeds balance for " + name + ": " + str(budgetBalance - budgetVal) + " available vs " + str(budgetVal) + " transferred.", entry))
 

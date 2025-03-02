@@ -210,13 +210,11 @@ class AssetBudgetLoader:
         entries = []
         
         for budget in self.budgetDetails.getKeys():
-            print("--- " + budget + " ---")
             priorSum = Decimal(0)
             for year in range(minYear, maxYear + 1):
                 budgetAppreciation = self.budgetAppreciation.get(budget, year)
                 appreciation = Decimal(1)+ budgetAppreciation / Decimal(12)
-                print(str(year) + ": " + str(budgetAppreciation))
-                print("Appreciation factor: " + str(appreciation))
+
                 monthlyValues = []
                 for i in range(1, 13):
                     monthEntryKeys = self.budgetDetails.getKeys(budget, year, i)

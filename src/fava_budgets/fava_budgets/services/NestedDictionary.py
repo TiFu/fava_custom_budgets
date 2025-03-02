@@ -56,7 +56,7 @@ class NestedDictionary:
         # 
         arg = args[len(args) -1]
         level[arg] = value
-        print(self.content)
+        #print(self.content)
 
 if __name__ == "__main__":
     d = NestedDictinory(0)
