@@ -15,7 +15,8 @@ class DecimalEncoder(json.JSONEncoder):
 
 class AssetBudgetReportService:
 
-    def __init__(self, assetBudgetInformation):
+    def __init__(self, assetBudgetInformation, priceDatabase):
+        self.priceDatabase = priceDatabase
         self.accounts = assetBudgetInformation["accounts"]
         self.budget = assetBudgetInformation["budget"]
         self.transactions = assetBudgetInformation["budgetedTransactions"] # { entry: Entry, postings: [postings]}
@@ -59,6 +60,13 @@ class AssetBudgetReportService:
             maxYear = max(year, maxYear)
 
             month = entry.date.month
+            
+            # (1) Convert to NestedDictionary for simplicity
+            # (2) In original one by account calculate balance in "acc currency"; assume accounts only have 1 currency
+            # (3) use a separate nested dictionary for step (2)
+            # (3) In the post "accumulation step", use both NestedDictionaries; one in acc currency, other in "base currency"
+            # (4) Validate "budgeted accounts" only have 1 currency -> otherwise error
+            # (5) Allow setting base currency (e.g. fetch from first operating currency)
             
             for posting in transaction["budgetedPostings"]:
                 val = self._convertToBaseCurrency(posting)

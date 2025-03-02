@@ -1,4 +1,43 @@
 from datetime import datetime
+
+class PriceDatabase:
+
+    # Prices is a tuple(date, price)
+    def __init__(self, pricesByCurrency):
+        self.bst = {}
+        self._initBinarySearchTables(pricesByCurrency)
+
+    def _initBinarySearchTables(self, pricesByCurrency):
+        for currency in pricesByCurrency:
+            prices =  pricesByCurrency[currency]
+            prices.sort(key=lambda x: x[0])
+            self.bst[currency] = prices
+
+    def lookupNearestPrice(self, currency, searchDate):
+        priceList = self.bst[currency]
+        lowerIndex = 0
+        upperIndex = len(priceList) - 1
+
+        while abs(upperIndex - lowerIndex) > 1:
+            nextIndex = lowerIndex + (upperIndex - lowerIndex + 1) // 2
+            print(str(lowerIndex) + " < " + str(nextIndex) + " < " + str(upperIndex))
+            element = priceList[nextIndex]
+            date = element[0]
+            if searchDate < date:
+                upperIndex = nextIndex
+            elif searchDate > date:
+                lowerIndex = nextIndex
+            else: # exact match
+                return element[1]
+
+        # Indices matched
+        deltaUpper = abs(priceList[upperIndex][0] - searchDate)
+        deltaLower = abs(priceList[lowerIndex][0] - searchDate)
+        if deltaUpper < deltaLower:
+            return priceList[upperIndex][1]
+        else:
+            return priceList[lowerIndex][1]
+
 class CostSummary:
     
     def __init__(self, elements):

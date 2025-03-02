@@ -6,7 +6,7 @@ from datetime import datetime
 from fava_budgets.services.BudgetReportServices import IncomeExpenseReportService
 from fava_budgets.services.AssetBudgetReportService import AssetBudgetReportService
 
-from fava_budgets.services.Loaders import BudgetLoader, ActualsLoader, FavaLedgerHelper, AssetBudgetLoader
+from fava_budgets.services.Loaders import BudgetLoader, PriceDatabaseLoader, ActualsLoader, FavaLedgerHelper, AssetBudgetLoader
 class BudgetContext:
     pass
 
@@ -20,6 +20,7 @@ class BudgetFavaPlugin(FavaExtensionBase):
     incomeActualsLoader = ActualsLoader("EUR", "Income")
     expensesActualsLoader = ActualsLoader("EUR", "Expenses")
     assetBudgetLoader = AssetBudgetLoader()
+    priceDatabaseLoader = PriceDatabaseLoader("EUR")
 
     budgetReportService = None
     budgetSummary = None
@@ -32,8 +33,11 @@ class BudgetFavaPlugin(FavaExtensionBase):
         self.expensesSummary = self.expensesActualsLoader.loadLedger(self.ledger)
 
         favaLedger = FavaLedgerHelper(self.ledger)
+        self.priceDatabase = self.priceDatabaseLoader.loadLedger(favaLedger)
         self.assetBudgetInformation = self.assetBudgetLoader.loadLedger(favaLedger)
-        self.assetBudgetReportService = AssetBudgetReportService(self.assetBudgetInformation)
+
+        self.assetBudgetReportService = AssetBudgetReportService(self.assetBudgetInformation, self.priceDatabase)
+        
         self.budgetReportService = IncomeExpenseReportService(self.budgetSummary, self.incomeSummary, self.expensesSummary)
 
     # TODO: We can optimize load times here by pre-calculating everything & then just sending whatever is needed from bootstrap

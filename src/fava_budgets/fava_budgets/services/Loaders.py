@@ -1,4 +1,4 @@
-from fava_budgets.services.Summary import CostSummary
+from fava_budgets.services.Summary import CostSummary, PriceDatabase
 from fava.context import g
 from fava.helpers import FavaAPIError
 from beanquery.query import run_query  # type: ignore
@@ -15,7 +15,11 @@ class BeancountLedgerHelper:
 
     def getTransactions(self):
         return filter(lambda x: isinstance(x, Transaction), self.entries)
-    
+
+    def getPrices(self):
+        return filter(lambda x: isinstance(x, Price), self.entries)
+
+
     def getOpen(self):
         return filter(lambda x: isinstance(x, Open), self.entries)
 
@@ -35,6 +39,9 @@ class FavaLedgerHelper:
     def getOpen(self):
         return self.ledger.all_entries_by_type.Open
 
+    def getPrices(self):
+        return self.ledger.all_entries_by_type.Price
+
     def getCustom(self):
         return self.ledger.all_entries_by_type.Custom
     
@@ -43,6 +50,9 @@ class FavaLedgerHelper:
 
 
 class ILedgerHelper:
+
+    def getPrices(self):
+        pass
 
     def getTransactions(self):
         pass
@@ -54,6 +64,41 @@ class ILedgerHelper:
         pass
 
 BudgetError = collections.namedtuple("BudgetError", "source message entry")
+
+class PriceDatabaseLoader:
+    def __init__(self, targetCurrency):
+        self.targetCurrency = targetCurrency
+
+    def loadLedger(self, ledgerHelper):
+
+        prices = ledgerHelper.getPrices()
+
+        outputTable = {}
+        for price in prices:
+            if price.amount.currency != self.targetCurrency:
+                continue
+            currency = price.currency
+            if currency not in outputTable:
+                outputTable[currency] = []
+
+            outputTable[currency].append((price.date, price.amount.number))
+
+        trxs = ledgerHelper.getTransactions()
+        for trx in trxs:
+            postings = trx.postings
+            for posting in postings:
+                if posting.cost is None:
+                    continue
+
+                currency = posting.units.currency
+                cost = posting.cost.number
+                costCurrency = posting.cost.currency
+                if costCurrency != self.targetCurrency:
+                    continue
+                
+                outputTable[currency].append((trx.date, cost))
+                #print("Adding " + str(currency) + " for " + str(cost))
+        return PriceDatabase(outputTable)
 
 
 class AssetBudgetLoader:   
