@@ -148,6 +148,20 @@ class AssetBudgetLoader:
                 self.budgetDetails.increase(Decimal(0), name, year, i, entryName)
         return errors
 
+    def _parseAssetBudgetAppreciation(self, entry):
+        errors = []
+        if len(entry.values) != 3:
+            errors.append(BudgetError(entry.meta, "Incorrect number of values provided for asset_budget_appreciation; expected 3 (budgetName, referenceName, value) but received " + str(len(entry.values)), entry))
+            return errors
+
+        year = entry.date.year
+        name = entry.values[0].value
+        reference = entry.values[1].value
+        amount = Decimal(entry.values[2].value)
+
+        self.budgetAppreciation.increase(amount, name, year)
+        return errors
+
     def _loadBudgets(self, ledger):
         entries = []
         # Parse custom
@@ -165,33 +179,53 @@ class AssetBudgetLoader:
         #
 
         self.budgetDetails = NestedDictionary(0)
+        self.budgetAppreciation = NestedDictionary(0)
         self.alreadySeenAssetBudgetEntries = {}
         errors = []
+        
+        minYear = 20000
+        maxYear = 0
 
         for entry in customs:
+            year = entry.date.year
+            minYear = min(year, minYear)
+            maxYear = max(year, maxYear)
+
             if entry.type == "asset_budget_once":
                 parseErrors = self._parseAssetBudgetOnce(entry)
                 errors.extend(parseErrors)
             elif entry.type == "asset_budget": 
                 parseErrors = self._parseAssetBudget(entry)
                 errors.extend(parseErrors)
+            elif entry.type == "asset_budget_appreciation":
+                parseErrors = self._parseAssetBudgetAppreciation(entry)
+                errors.extend(parseErrors)
+                # TODO: expect X% growth rate (eg based on investments)
 
         # Add asset_budget_percentage
-        entries = self._accumulateBudgets()
+        entries = self._accumulateBudgets(minYear, maxYear)
         return entries, self.budgetDetails.getDict(), errors
 
-    def _accumulateBudgets(self):
+    def _accumulateBudgets(self, minYear, maxYear):
         entries = []
         
         for budget in self.budgetDetails.getKeys():
-            for year in self.budgetDetails.getKeys(budget):
+            print("--- " + budget + " ---")
+            priorSum = Decimal(0)
+            for year in range(minYear, maxYear + 1):
+                budgetAppreciation = self.budgetAppreciation.get(budget, year)
+                appreciation = Decimal(1)+ budgetAppreciation / Decimal(12)
+                print(str(year) + ": " + str(budgetAppreciation))
+                print("Appreciation factor: " + str(appreciation))
                 monthlyValues = []
                 for i in range(1, 13):
                     monthEntryKeys = self.budgetDetails.getKeys(budget, year, i)
                     monthSum = Decimal(0)
                     for entryName in monthEntryKeys:
                         monthSum += self.budgetDetails.get(budget, year, i, entryName)
-                    monthlyValues.append([i, monthSum])
+                    
+                    priorSum = priorSum * appreciation + monthSum
+                    monthlyValues.append([i, priorSum])
 
                 entries.append({ 
                     "account": budget,
