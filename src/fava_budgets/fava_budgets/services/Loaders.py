@@ -5,6 +5,8 @@ from beanquery.query import run_query  # type: ignore
 from collections import namedtuple
 from beancount.core.data import Transaction, Price, Open, Commodity, Close, Balance, Custom
 from decimal import Decimal
+import collections
+from fava_budgets.services.NestedDictionary import NestedDictionary
 
 # TODO: the income expense beancount plugin needs to check for errors -> eg correct number of values, only income/expense accounts
 class BeancountLedgerHelper:
@@ -51,19 +53,21 @@ class ILedgerHelper:
     def getCustom(self):
         pass
 
+BudgetError = collections.namedtuple("BudgetError", "source message entry")
 
-class AssetBudgetLoader:
-    
+
+class AssetBudgetLoader:   
     def loadLedger(self, ledgerHelper):
-        #print("Parsing custom")
 
         budgetedAccounts = self._loadAccounts(ledgerHelper)
-        budgetEntries = self._loadBudgets(ledgerHelper)
+        budgetEntries, budgetDetails, errors = self._loadBudgets(ledgerHelper)
         budgetedTransactions = self._loadTransactions(ledgerHelper, budgetedAccounts)
         #print(budgetedTransactions)
         return {
             "budget": CostSummary(budgetEntries),
+            "budgetDetails": budgetDetails,
             "accounts": budgetedAccounts,
+            "errors": errors,
             "budgetedTransactions": budgetedTransactions
         }
 
@@ -94,6 +98,56 @@ class AssetBudgetLoader:
                 entries.append(entry.account)
         return set(entries)
 
+    def _parseAssetBudget(self, entry):
+        errors = []
+        if len(entry.values) != 14:
+            errors.append(BudgetError(entry.meta, "Incorrect number of values provided for asset_budget; expected 14 (budgetName, referenceName, 12 decimals) but received " + str(len(entry.values)), entry))
+            return errors
+
+        year = entry.date.year
+        values = entry.values
+        name = entry.values[0].value
+        referenceName = entry.values[1].value
+
+        entryName = str(name) + " - " + str(year) + " - " + str(referenceName)
+        if entryName in self.alreadySeenAssetBudgetEntries:
+            errors.append(BudgetError(entry.meta, "Duplicate asset budget entry " + entryName + " on " + str(entry.date) + " and " + str(self.alreadySeenAssetBudgetEntries[entryName]), entry))
+        self.alreadySeenAssetBudgetEntries[entryName] = entry.date
+
+        accumulatedAmount = Decimal(0)
+        for i, x in enumerate(entry.values[2:]):
+            #print("Value: " + str(type(x.value)) + ": " + str(x.value))
+            val = Decimal(x.value)
+            self.budgetDetails.increase(val, name, year, i+1, entryName)
+
+        return errors
+
+    def _parseAssetBudgetOnce(self, entry):
+        errors = []
+        if len(entry.values) != 3:
+            errors.append(BudgetError(entry.meta, "Incorrect number of values provided for asset_budget_once; expected 3 (budgetName, referenceName, value) but received " + str(len(entry.values)), entry))
+            return errors
+
+        year = entry.date.year
+        month = entry.date.month
+        values = entry.values
+        name = entry.values[0].value
+        reference = entry.values[1].value
+        amount = Decimal(entry.values[2].value)
+
+        # TODO: refactor into separate function(s) to reduce duplication
+        entryName = str(name) + " - " + str(year) + "/" + str(month) + "-" + str(reference)
+        if entryName in self.alreadySeenAssetBudgetEntries:
+            errors.append(BudgetError(entry.meta, "Duplicate asset budget entry " + entryName + " on " + str(entry.date) + " and " + str(self.alreadySeenAssetBudgetEntries[entryName]), entry))
+        self.alreadySeenAssetBudgetEntries[entryName] = entry.date
+
+        for i in range(1, 13):
+            if i == month:
+                self.budgetDetails.increase(amount, name, year, i, entryName)
+            else:
+                self.budgetDetails.increase(Decimal(0), name, year, i, entryName)
+        return errors
+
     def _loadBudgets(self, ledger):
         entries = []
         # Parse custom
@@ -110,28 +164,41 @@ class AssetBudgetLoader:
         #       (B) Adjust value calculation to be *asset value as of end of month (-> prior assets at end of month value + this month's contributions)
         #
 
+        self.budgetDetails = NestedDictionary(0)
+        self.alreadySeenAssetBudgetEntries = {}
+        errors = []
+
         for entry in customs:
-            if entry.type == "asset_budget": # Structure is budget_name start_value january_value february_value [...] december_value
-                year = entry.date.year
-                values = entry.values
-                name = entry.values[0].value
-                start = entry.values[1].value
-            
+            if entry.type == "asset_budget_once":
+                parseErrors = self._parseAssetBudgetOnce(entry)
+                errors.extend(parseErrors)
+            elif entry.type == "asset_budget": 
+                parseErrors = self._parseAssetBudget(entry)
+                errors.extend(parseErrors)
+
+        # Add asset_budget_percentage
+        entries = self._accumulateBudgets()
+        return entries, self.budgetDetails.getDict(), errors
+
+    def _accumulateBudgets(self):
+        entries = []
+        
+        for budget in self.budgetDetails.getKeys():
+            for year in self.budgetDetails.getKeys(budget):
                 monthlyValues = []
-                #print("Start: " + str(type(start)))
-                accumulatedAmount = Decimal(start)
-                for i, x in enumerate(entry.values[2:]):
-                    #print("Value: " + str(type(x.value)) + ": " + str(x.value))
-                    accumulatedAmount += Decimal(x.value)
-                    monthlyValues.append([i+1, accumulatedAmount])
+                for i in range(1, 13):
+                    monthEntryKeys = self.budgetDetails.getKeys(budget, year, i)
+                    monthSum = Decimal(0)
+                    for entryName in monthEntryKeys:
+                        monthSum += self.budgetDetails.get(budget, year, i, entryName)
+                    monthlyValues.append([i, monthSum])
 
                 entries.append({ 
-                    "account": name,
+                    "account": budget,
                     "year": year,
                     "values": monthlyValues
                 })
         return entries
-
 
 class BudgetLoader:
 
@@ -141,19 +208,6 @@ class BudgetLoader:
         # Parse custom
         customs = ledger.all_entries_by_type.Custom
         for entry in customs:
-            #if entry.type == "asset_budget": # Structure is budget_name start_value january_value february_value [...] december_value
-            #    year = entry.date.year
-            #    values = entry.values
-            #    name = entry.values[0].value
-            #    start = entry.values[1].value
-            #    monthlyValues = list(map(lambda x: x.value, entry.values[2:]))
-            #
-            #    self.assetBudget.setStartAmount(name, year, start)
-            #    month = 1
-            #    for value in monthlyValues:
-            #        self.assetBudget.setBudget(name, year, month, value)
-            #        month += 1
-            #
             if entry.type == "income_expense_budget":
                 year = entry.date.year
                 values = entry.values

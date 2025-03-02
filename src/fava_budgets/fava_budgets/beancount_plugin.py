@@ -11,5 +11,5 @@ def budget(entries, options_map):
     service = AssetBudgetReportService(input)
 
     errors = service.validate()
-
+    errors += input["errors"]
     return entries, errors ## TODO return errors

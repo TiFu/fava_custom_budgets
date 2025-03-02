@@ -59,7 +59,7 @@ class AssetBudgetReportService:
             for posting in transaction["budgetedPostings"]:
                 val = self._convertToBaseCurrency(posting)
                 account = posting.account
-                actualBalance = self._increaseBalance(year, month, account, "actual", val)
+                actualBalance = self._increaseAccountBalance(year, month, account, "actual", val)
                 #print("budgeted posting meta")
                 #print(posting.meta)
 
@@ -67,11 +67,9 @@ class AssetBudgetReportService:
                     if key.startswith("budget_"):
                         name = key.replace("budget_", "")
                         budgetVal = self._convertActualsToBaseCurrency(posting.meta[key], posting)
-                        budgetBalance = self._increaseBalance(year, month, account, name, budgetVal)
+                        budgetBalance = self._increaseAccountBalance(year, month, account, name, budgetVal)
                         if budgetBalance < 0:
                             errors.append(BudgetError(entry.meta, "Budgeted amount exceeds balance for " + name + ": " + str(budgetBalance - budgetVal) + " available vs " + str(budgetVal) + " transferred.", entry))
-        json_formatted_str = json.dumps(self.accountBalances, indent=2, cls=DecimalEncoder)
-        print(json_formatted_str) 
 
         # Actual balances
         budgetSet = set()
@@ -118,10 +116,6 @@ class AssetBudgetReportService:
                         val = self._getAccountValue(year, month, account, budget)
                         self._increaseBudgetBalance(year, month, account, budget, val)
 
-        print("Budget Balances")
-        json_formatted_str = json.dumps(self.budgetBalances, indent=2, cls=DecimalEncoder)
-        print(json_formatted_str) 
-
         return errors
 
     def _getAccountValue(self, year, month, account, budget):
@@ -150,7 +144,7 @@ class AssetBudgetReportService:
         self.budgetBalances[name][year][month] += value
 
 
-    def _increaseBalance(self, year, month, account, type, value):
+    def _increaseAccountBalance(self, year, month, account, type, value):
         # Update account budget balance for the month
         if account not in self.accountBalances:
             self.accountBalances[account] = {}
