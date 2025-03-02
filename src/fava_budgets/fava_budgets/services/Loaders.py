@@ -95,7 +95,10 @@ class PriceDatabaseLoader:
                 costCurrency = posting.cost.currency
                 if costCurrency != self.targetCurrency:
                     continue
-                
+
+                if currency not in outputTable:
+                    outputTable[currency] = []
+
                 outputTable[currency].append((trx.date, cost))
                 #print("Adding " + str(currency) + " for " + str(cost))
         return PriceDatabase(outputTable, self.targetCurrency)

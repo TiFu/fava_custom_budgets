@@ -32,7 +32,7 @@ const uiSlice = createSlice({
             state.showYtD = !state.showYtD
             if (state.showYtD) {
                 let currentMonth = new Date().getMonth() + 1 as MonthType // Month in 1..12
-                state.ytdMonth = currentMonth
+                state.ytdMonth = Math.max(currentMonth-1, 1) as MonthType
             } else {
                 state.ytdMonth = 12
             }
