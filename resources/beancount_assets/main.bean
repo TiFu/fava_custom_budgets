@@ -18,10 +18,10 @@ option "render_commas" "TRUE"
     budgeted: "true"
 2023-01-01 open Expenses:Brokerage-Fees EUR
 
-2023-01-01 custom "asset_budget" "saving-goal-1" 3000  300 350   300   300   300   300   300   300   300    300    300    300
-2023-01-01 custom "asset_budget" "saving-goal-2" 2000  200 200   200   200   200   200   200   200   200    200    200    200
-2023-01-01 custom "asset_budget" "saving-goal-3" 1000  100 100   100   100   100   100   100   100   100    100    100    100
-2023-01-01 custom "asset_budget" "saving-goal-4" 1000  100 100   100   100   100   100   100   100   100    100    100    100
+2023-01-01 custom "asset_budget" "saving-goal-1" "monthly contribution" 300 350   300   300   300   300   300   300   300    300    300    300
+2023-01-01 custom "asset_budget" "saving-goal-2" "monthly contribution" 200 200   200   200   200   200   200   200   200    200    200    200
+2023-01-01 custom "asset_budget" "saving-goal-3" "monthly contribution" 100 100   100   100   100   100   100   100   100    100    100    100
+2023-01-01 custom "asset_budget" "saving-goal-4" "monthly contribution" 100 100   100   100   100   100   100   100   100    100    100    100
 
 2023-10-01 * "Work" "Salary"
   Assets:Bank-Account              -5000 EUR

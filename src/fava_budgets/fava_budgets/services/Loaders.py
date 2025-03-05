@@ -266,7 +266,7 @@ class AssetBudgetLoader:
             priorSum = Decimal(0)
             for year in range(minYear, maxYear + 1):
                 budgetAppreciation = self.budgetAppreciation.get(budget, year)
-                appreciation = Decimal(1)+ budgetAppreciation / Decimal(12)
+                appreciation = Decimal(1) + budgetAppreciation / Decimal(12)
 
                 monthlyValues = []
                 for i in range(1, 13):
