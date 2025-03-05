@@ -173,10 +173,16 @@ export class IncomeExpenseBudgetService {
             
             let children = this.accounts.getChildren(a)
             let breakdown: {[key: string]: number} = {}
+            let sum = 0
             children.forEach(c => {
                 let n = c
                 breakdown[n] = wrapper.getAnnualSum(c, year, ytd)
+                sum += breakdown[n]
             })
+            
+            let diff = actuals - sum
+            if (Math.abs(diff) > 10e-9)
+                breakdown[a] = diff
 
             summary[a] = {
                 values: actuals,
