@@ -7,7 +7,7 @@ from datetime import datetime
 import json
 import decimal
 
-path = os.path.abspath("../../resources/beancount_inc_exp/main.bean")
+path = os.path.abspath("../../../resources/beancount_inc_exp/main.bean")
 ledger = FavaLedger(path)
 
 favaPlugin = BudgetFavaPlugin(ledger)
@@ -15,7 +15,7 @@ favaPlugin.ledger = ledger
 favaPlugin.after_load_file()
 
 
-path = os.path.abspath("../../resources/beancount_assets/main.bean")
+path = os.path.abspath("../../../resources/beancount_assets/main.bean")
 ledger = FavaLedger(path)
 assetFavaPlugin = BudgetFavaPlugin(ledger)
 assetFavaPlugin.ledger = ledger

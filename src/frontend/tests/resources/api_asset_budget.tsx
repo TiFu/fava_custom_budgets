@@ -1,35 +1,19 @@
-export const api = {
+export const api ={
     "budgetBalance": {
-        "saving-goal-3": {
+        "actual": {
             "2023": {
-                "1": 0.25,
-                "2": 0.25,
-                "3": 0.25,
-                "4": 0.25,
-                "5": 0.25,
-                "6": 0.25,
-                "7": 0.25,
-                "8": 0.25,
-                "9": 0.25,
-                "10": 6000.25,
-                "11": 6000.25,
-                "12": 6000.25
-            }
-        },
-        "saving-goal-2": {
-            "2023": {
-                "1": 0.25,
-                "2": 0.25,
-                "3": 0.25,
-                "4": 0.25,
-                "5": 0.25,
-                "6": 0.25,
-                "7": 0.25,
-                "8": 0.25,
-                "9": 0.25,
-                "10": 2000.25,
-                "11": 2000.25,
-                "12": 2000.25
+                "1": 0.75,
+                "2": 0.75,
+                "3": 0.75,
+                "4": 0.75,
+                "5": 0.75,
+                "6": 0.75,
+                "7": 0.75,
+                "8": 0.75,
+                "9": 0.75,
+                "10": 11000.75,
+                "11": 11000.75,
+                "12": 11000.75
             }
         },
         "saving-goal-1": {
@@ -48,20 +32,36 @@ export const api = {
                 "12": 3000.25
             }
         },
-        "actual": {
+        "saving-goal-2": {
             "2023": {
-                "1": 0.75,
-                "2": 0.75,
-                "3": 0.75,
-                "4": 0.75,
-                "5": 0.75,
-                "6": 0.75,
-                "7": 0.75,
-                "8": 0.75,
-                "9": 0.75,
-                "10": 11000.75,
-                "11": 11000.75,
-                "12": 11000.75
+                "1": 0.25,
+                "2": 0.25,
+                "3": 0.25,
+                "4": 0.25,
+                "5": 0.25,
+                "6": 0.25,
+                "7": 0.25,
+                "8": 0.25,
+                "9": 0.25,
+                "10": 2000.25,
+                "11": 2000.25,
+                "12": 2000.25
+            }
+        },
+        "saving-goal-3": {
+            "2023": {
+                "1": 0.25,
+                "2": 0.25,
+                "3": 0.25,
+                "4": 0.25,
+                "5": 0.25,
+                "6": 0.25,
+                "7": 0.25,
+                "8": 0.25,
+                "9": 0.25,
+                "10": 6000.25,
+                "11": 6000.25,
+                "12": 6000.25
             }
         }
     },
@@ -69,116 +69,116 @@ export const api = {
         "Assets:Fixed-Deposits": {
             "2023": {
                 "1": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "2": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "3": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "4": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "5": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "6": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "7": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "8": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "9": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 0.25,
+                    "actual": 0.75,
                     "saving-goal-1": 0.25,
-                    "actual": 0.75
+                    "saving-goal-2": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "10": {
                     "actual": 5000.75,
                     "saving-goal-3": 0.25,
-                    "saving-goal-2": 2000.25,
-                    "saving-goal-1": 3000.25
+                    "saving-goal-1": 3000.25,
+                    "saving-goal-2": 2000.25
                 },
                 "11": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 2000.25,
+                    "actual": 5000.75,
                     "saving-goal-1": 3000.25,
-                    "actual": 5000.75
+                    "saving-goal-2": 2000.25,
+                    "saving-goal-3": 0.25
                 },
                 "12": {
-                    "saving-goal-3": 0.25,
-                    "saving-goal-2": 2000.25,
+                    "actual": 5000.75,
                     "saving-goal-1": 3000.25,
-                    "actual": 5000.75
+                    "saving-goal-2": 2000.25,
+                    "saving-goal-3": 0.25
                 }
             }
         },
         "Assets:Brokerage": {
             "2023": {
                 "10": {
-                    "saving-goal-3": 1000.0,
-                    "actual": 1000.0
+                    "actual": 1000.0,
+                    "saving-goal-3": 1000.0
                 },
                 "11": {
-                    "saving-goal-3": 1000.0,
-                    "actual": 1000.0
+                    "actual": 1000.0,
+                    "saving-goal-3": 1000.0
                 },
                 "12": {
-                    "saving-goal-3": 1000.0,
-                    "actual": 1000.0
+                    "actual": 1000.0,
+                    "saving-goal-3": 1000.0
                 }
             }
         },
         "Assets:Foreign-currency-deposit": {
             "2023": {
                 "10": {
-                    "saving-goal-3": 5000.0,
-                    "actual": 5000.0
+                    "actual": 5000.0,
+                    "saving-goal-3": 5000.0
                 },
                 "11": {
-                    "saving-goal-3": 5000.0,
-                    "actual": 5000.0
+                    "actual": 5000.0,
+                    "saving-goal-3": 5000.0
                 },
                 "12": {
-                    "saving-goal-3": 5000.0,
-                    "actual": 5000.0
+                    "actual": 5000.0,
+                    "saving-goal-3": 5000.0
                 }
             }
         }
     },
     "accounts": [
+        "Assets:Foreign-currency-deposit",
         "Assets:Fixed-Deposits",
-        "Assets:Brokerage",
-        "Assets:Foreign-currency-deposit"
+        "Assets:Brokerage"
     ],
     "budgets": {
         "saving-goal-3": {
