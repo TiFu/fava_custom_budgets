@@ -7,6 +7,10 @@ option "render_commas" "TRUE"
 ;; might need additional errors (e.g., conversion unclear)
 ;; example: trx from non-budgeted to budgeted with foreign currency from both accounts; no conversion factor would be supplied
 
+2025-03-05 price XYZ_SHARES      120 EUR
+2025-03-15 price XYZ_SHARES      130 EUR
+2025-03-30 price XYZ_SHARES      140 EUR
+
 1867-07-01 commodity XYZ_SHARES
   
 2023-01-01 open Assets:Bank-Account EUR
@@ -40,7 +44,7 @@ option "render_commas" "TRUE"
     budget_saving-goal-3: 100
   Expenses:Brokerage-Fees             5 EUR
 
-2023-10-01 * "Work" "Salary"
+2023-10-11 * "Work" "Salary"
   Assets:Bank-Account              -5000 EUR
   Assets:Foreign-currency-deposit   1000 USD {5 EUR}
     budget_saving-goal-3: 1000
