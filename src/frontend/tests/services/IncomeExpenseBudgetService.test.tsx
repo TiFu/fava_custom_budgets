@@ -76,12 +76,10 @@ describe("IncomeExpenseBudgetService", () => {
         console.log(result)
         expect(result.lineItems.length).toBe(4)
         
-        // Note: Income budget has 100/month on top on "Income" account level
         for (let entry of [ ["Income", 35500], ["Income:Work", 35000], ["Income:Work:Bonus", 0], ["Income:Work:Salary", 35000]]) {
             expect(result.summary[entry[0]].values).toEqual(entry[1])
         }
 
-        // TODO: the value break-down needs to consider the "current" account as well (if there's separate income!)
         const expenses = result.summary["Income"]
         const expBreakdown = expenses.valueBreakdown
         let sum = 0
@@ -111,10 +109,6 @@ describe("IncomeExpenseBudgetService", () => {
             const cmp: any = (comp.comparison["Expenses"] as any)[key]
             expect(cmp).toEqual(val)
         }
-
-        // TODO: this looks like an error
-        //console.log(comp.comparison["Expenses"].actualBreakdown)
-        //expect(false).toBe(true)
     })
 
     test("getIncomeComparison", () => {
@@ -135,10 +129,6 @@ describe("IncomeExpenseBudgetService", () => {
             const cmp: any = (comp.comparison["Income"] as any)[key]
             expect(cmp).toEqual(val)
         }
-
-        // TODO: this looks like an error
-        //console.log(comp.comparison["Income"].actualBreakdown)
-        //expect(false).toBe(true)
     })
 
 

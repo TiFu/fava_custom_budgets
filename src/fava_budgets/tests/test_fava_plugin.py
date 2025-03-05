@@ -71,17 +71,6 @@ class TestFavaPlugin(unittest.TestCase):
         self._validate(expected, result)
     def test_bootstrapIncomeExpenseBudget_actualsExpenses(self):
         result = self.favaPlugin.bootstrapIncomeExpenseBudget()
-        class SetEncoder(json.JSONEncoder):
-            def default(self, obj):
-                if isinstance(obj, set):
-                    return list(obj)
-                if isinstance(obj, decimal.Decimal):
-                    return float(obj)
-                return json.JSONEncoder.default(self, obj)
-
-        data_str = json.dumps(result, cls=SetEncoder, indent=4)
-        #print(data_str)
-
 
         result = result["actuals"]["Expenses"]["Expenses"]
         expected = [
@@ -96,16 +85,6 @@ class TestFavaPlugin(unittest.TestCase):
  
     def test_bootstrapAssetBudget(self):
         assetBudget = self.assetFavaPlugin.bootstrapAssetBudget()
-        class SetEncoder(json.JSONEncoder):
-            def default(self, obj):
-                if isinstance(obj, set):
-                    return list(obj)
-                if isinstance(obj, decimal.Decimal):
-                    return float(obj)
-                return json.JSONEncoder.default(self, obj)
-
-        data_str = json.dumps(assetBudget, cls=SetEncoder, indent=4)
-        #print(data_str)
 
         for entry in ["budgetBalance", "accountBalance", "accounts", "budgets"]:
             self.assertTrue(entry in assetBudget, "Expected " + entry + " to be present in " + str(assetBudget.keys()))

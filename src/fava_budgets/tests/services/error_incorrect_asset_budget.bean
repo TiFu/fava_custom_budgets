@@ -1,0 +1,12 @@
+option "operating_currency" "EUR"
+option "render_commas" "TRUE"
+2014-01-01 custom "fava-option" "invert-income-liabilities-equity" "True"
+2014-01-01 custom "fava-option" "indent" "4"
+
+; 1 entry too many
+2023-01-01 custom "asset_budget" "saving-goal-3" "monthly contribution" 400 5000 400   400   400   400   400   400   400   400    400    400    400
+; 1 entry too few
+2023-01-01 custom "asset_budget" "saving-goal-3" "monthly contribution"  400   400   400   400   400   400   400   400    400    400    400
+
+;2022-12-30 custom "asset_budget_once" "saving-goal-3" "One-off" 2000
+;2023-01-01 custom "asset_budget_appreciation" "saving-goal-3" "Appreciation" 0.03
