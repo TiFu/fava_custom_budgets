@@ -1,0 +1,9 @@
+option "operating_currency" "EUR"
+option "render_commas" "TRUE"
+2014-01-01 custom "fava-option" "invert-income-liabilities-equity" "True"
+2014-01-01 custom "fava-option" "indent" "4"
+
+
+2023-01-01 custom "asset_budget_appreciation" "saving-goal-3" "Appreciation" 0.03 0.05
+
+2023-01-01 custom "asset_budget_appreciation" "saving-goal-3" "Appreciation" 

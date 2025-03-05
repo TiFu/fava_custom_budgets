@@ -17,18 +17,22 @@ option "render_commas" "TRUE"
 2023-01-01 open Assets:Brokerage XYZ_SHARES
     budgeted: "true"
 2023-01-01 open Expenses:Brokerage-Fees EUR
+2023-01-01 open Expenses:Gifts EUR
 
 2023-01-01 custom "asset_budget" "saving-goal-1" "monthly contribution" 300 350   300   300   300   300   300   300   300    300    300    300
-2023-01-01 custom "asset_budget" "saving-goal-2" "monthly contribution" 200 200   200   200   200   200   200   200   200    200    200    200
-2023-01-01 custom "asset_budget" "saving-goal-3" "monthly contribution" 100 100   100   100   100   100   100   100   100    100    100    100
-2023-01-01 custom "asset_budget" "saving-goal-4" "monthly contribution" 100 100   100   100   100   100   100   100   100    100    100    100
+
+2023-06-01 custom "asset_budget_once" "saving-goal-2" "One-off" 2000
+
+
+2022-12-30 custom "asset_budget_once" "saving-goal-3" "One-off" 2000
+2023-01-01 custom "asset_budget" "saving-goal-3" "monthly contribution" 400 400   400   400   400   400   400   400   400    400    400    400
+2023-01-01 custom "asset_budget_appreciation" "saving-goal-3" "Appreciation" 0.03
 
 2023-10-01 * "Work" "Salary"
   Assets:Bank-Account              -5000 EUR
   Assets:Fixed-Deposits             5000 EUR
     budget_saving-goal-1: 3000
-    budget_saving-goal-2: 1000
-    budget_saving-goal-4: 1000
+    budget_saving-goal-2: 2000
 
 2023-10-01 * "Work" "Salary"
   Assets:Bank-Account              -1005 EUR
@@ -39,4 +43,8 @@ option "render_commas" "TRUE"
 2023-10-01 * "Work" "Salary"
   Assets:Bank-Account              -5000 EUR
   Assets:Foreign-currency-deposit   1000 USD {5 EUR}
-    budget_saving-goal-4: 1000
+    budget_saving-goal-3: 1000
+
+2023-10-01 * "Work" "Salary"
+  Expenses:Brokerage-Fees              -5000 EUR
+  Expenses:Gifts                        5000 EUR
