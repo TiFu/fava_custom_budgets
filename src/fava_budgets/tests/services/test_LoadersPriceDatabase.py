@@ -11,11 +11,10 @@ class TestIncExpLoader(unittest.TestCase):
         ledger = FavaLedger(path)
         helper = FavaLedgerHelper(ledger)
 
-        priceDatabase = PriceDatabaseLoader("EUR")
-        self.result = priceDatabase.loadLedger(helper)
+        priceDatabaseLoader = PriceDatabaseLoader("EUR")
+        self.result = priceDatabaseLoader.loadLedger(helper)
 
     def test_convert_price(self):
-        print(self.result)
         date = datetime.date(2025, 3, 5)
         convertedToEur = self.result.convertPrice("XYZ_SHARES", date, 200)
         self.assertAlmostEqual(convertedToEur, 200*120)

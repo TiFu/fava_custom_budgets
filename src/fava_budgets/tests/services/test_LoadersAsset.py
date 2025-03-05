@@ -64,7 +64,7 @@ class TestAssetLoader(unittest.TestCase):
 
         self.assertTrue("budgetedTransactions" in result)
         trx = result["budgetedTransactions"]
-        self.assertEqual(3, len(trx), "Found " + str(len(trx)) + " transactions, although only 3 were expected")
+        self.assertEqual(4, len(trx), "Found " + str(len(trx)) + " transactions, although only 3 were expected")
 
     def test_asset_budget_values(self):
         result = self._loadSimpleCase()

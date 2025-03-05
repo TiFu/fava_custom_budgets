@@ -80,7 +80,7 @@ class TestFavaPlugin(unittest.TestCase):
                 return json.JSONEncoder.default(self, obj)
 
         data_str = json.dumps(result, cls=SetEncoder, indent=4)
-        print(data_str)
+        #print(data_str)
 
 
         result = result["actuals"]["Expenses"]["Expenses"]
