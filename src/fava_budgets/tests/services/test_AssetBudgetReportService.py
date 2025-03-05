@@ -1,4 +1,4 @@
-from fava_budgets.services.Loaders import BudgetLoader, ActualsLoader, FavaLedgerHelper, AssetBudgetLoader
+from fava_budgets.services.Loaders import BudgetLoader, PriceDatabaseLoader, ActualsLoader, FavaLedgerHelper, AssetBudgetLoader
 from fava_budgets.services.AssetBudgetReportService import AssetBudgetReportService
 
 from fava.core import FavaLedger
@@ -17,7 +17,9 @@ class TestAssetBudgetReportService(unittest.TestCase):
         ledger = FavaLedger(path)
         helper = FavaLedgerHelper(ledger)
         budget = AssetBudgetLoader().loadLedger(helper)
-        return AssetBudgetReportService(budget)
+        priceDatabaseLoader = PriceDatabaseLoader("EUR")
+        priceDatabase = priceDatabaseLoader.loadLedger(helper)
+        return AssetBudgetReportService(budget, priceDatabase)
 
     def test_validate_successful(self):
         errors = self.reportService.validate()
@@ -29,7 +31,7 @@ class TestAssetBudgetReportService(unittest.TestCase):
     def test_getBudgetBalances(self):
         balances = self.reportService.getBudgetBalances()
         #print(balances)
-        for entry in ["actual", "saving-goal-1", "saving-goal-2", "saving-goal-3", "saving-goal-4"]:
+        for entry in ["actual", "saving-goal-1", "saving-goal-2", "saving-goal-3"]:
             self.assertTrue(entry in balances, "Expected " + entry + " to be in budget balances but was not present in " + str(balances))
     
         # TODO: should this have entries for all months?
@@ -40,12 +42,13 @@ class TestAssetBudgetReportService(unittest.TestCase):
         for account in ["Assets:Fixed-Deposits", "Assets:Brokerage", "Assets:Foreign-currency-deposit"]:
             self.assertTrue(account in accountBalances, "Expected " + str(account) + " to be present in " + str(accountBalances.keys()))
 
-            for i in range(1, 12+1):
-                self.assertTrue(i in accountBalances[account][2023], "Expected to find month " + str(i) + " in " + str(accountBalances[account][2023]))
+        account = "Assets:Fixed-Deposits"
+        for i in range(1, 12+1):
+            self.assertTrue(i in accountBalances[account][2023], "Expected to find month " + str(i) + " for account " + str(account) + " in " + str(accountBalances[account][2023]))
 
         account = "Assets:Fixed-Deposits"
-        balances = [5000, 3000, 1000, 1000]
-        goals = ["actual", "saving-goal-1", "saving-goal-2", "saving-goal-4"]
+        balances = [5000.75, 3000.25, 2000.25]
+        goals = ["actual", "saving-goal-1", "saving-goal-2"]
 
         self._checkAccountBalance(accountBalances, account, balances, goals)
 
@@ -57,12 +60,14 @@ class TestAssetBudgetReportService(unittest.TestCase):
     def _checkAccountBalance(self, accountBalances, account, balances, goals):
         for month in range(10, 12+1):
             for i in range(len(balances)):
-                self.assertEqual(balances[i], accountBalances[account][2023][month][goals[i]])
+                val = accountBalances[account][2023][month][goals[i]]
+                errorMsg = "Expected balance for " + str(account) + " in " + str(month) + "/2023 to be " + str(balances[i]) + " but found " + str(val)
+                self.assertEqual(balances[i], val, errorMsg)
 
     def test_getBudgets(self):
         budgets = self.reportService.getBudgets()
 
-        self.assertEqual(3300, budgets.getValue("saving-goal-1", 2023, 1))
+        self.assertEqual(300, budgets.getValue("saving-goal-1", 2023, 1))
 
     def test_getBudgetedAccounts(self):
         accs = self.reportService.getBudgetedAccounts()

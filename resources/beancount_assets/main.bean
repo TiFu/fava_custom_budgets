@@ -32,6 +32,14 @@ option "render_commas" "TRUE"
 2023-01-01 custom "asset_budget" "saving-goal-3" "monthly contribution" 400 400   400   400   400   400   400   400   400    400    400    400
 2023-01-01 custom "asset_budget_appreciation" "saving-goal-3" "Appreciation" 0.03
 
+2023-01-01 * "Work" "Salary"
+  Assets:Bank-Account                          -0.75 EUR
+  Assets:Fixed-Deposits                         0.75 EUR
+    budget_saving-goal-1: 0.25
+    budget_saving-goal-2: 0.25
+    budget_saving-goal-3: 0.25
+
+
 2023-10-01 * "Work" "Salary"
   Assets:Bank-Account              -5000 EUR
   Assets:Fixed-Deposits             5000 EUR
