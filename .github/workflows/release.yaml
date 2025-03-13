@@ -49,8 +49,9 @@ jobs:
         working-directory: ./src/fava_budgets/
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        working-directory: ./src/fava_budgets/
+        with:
+          packages-dir: ./src/fava_budgets/dist
       - name: "Generate changelog"
         uses: janheinrichmerker/action-github-changelog-generator@v2.3
         with:
-          packages-dir: ./src/fava_budgets/dist
+          token: ${{ secrets.GITHUB_TOKEN }} 
