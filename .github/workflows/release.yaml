@@ -7,10 +7,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
     environment:
-          name: pypi
-          url: https://pypi.org/p/fava_custom_budgets
-        permissions:
-          id-token: write
+      name: pypi
+      url: https://pypi.org/p/fava_custom_budgets
+      permissions:
+        id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
