@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/fava_custom_budgets
+      url: https://pypi.org/p/fava-custom-budgets
     permissions:
         id-token: write
     steps:

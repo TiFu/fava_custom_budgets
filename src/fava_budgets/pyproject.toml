@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fava_budgets"
+name = "fava-custom-budgets"
 version = "0.0.1"
 dependencies = [
     "fava>=1.26.1",
