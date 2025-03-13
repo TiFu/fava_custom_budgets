@@ -4,7 +4,7 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
 jobs:
-  build-test-and-release:
+  release:
     runs-on: ubuntu-latest
     environment:
           name: pypi
