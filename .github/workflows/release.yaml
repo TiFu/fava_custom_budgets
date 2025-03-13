@@ -1,0 +1,52 @@
+name: Release fava_budget plugin
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  build-test-and-release:
+    runs-on: ubuntu-latest
+    environment:
+          name: pypi
+          url: https://pypi.org/p/fava_custom_budgets
+        permissions:
+          id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Mandatory to use the extract version from tag action
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.9'
+      - name: Install python packages
+        run: pip install -r requirements.txt
+        working-directory: ./src/fava_budgets/
+      - name: Install Node & NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install NPM packages
+        run: npm install
+        working-directory: ./src/frontend/
+      - name: Run backend tests
+        run: python -m unittest discover
+        working-directory: ./src/fava_budgets/
+      - name: Generate API output for frontend tests
+        run: PYTHONPATH=../src/fava_budgets python api_exporter.py
+        working-directory: ./resources
+      - name: Run frontend tests
+        run: npm run test
+        working-directory: ./src/frontend/
+      - name: Extract version from tag
+        uses: damienaicheh/extract-version-from-tag-action@v1.3.0
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./src/frontend/
+      - name: Build python wheel
+        run: python -m build
+        working-directory: ./src/fava_budgets/
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        working-directory: ./src/fava_budgets/
