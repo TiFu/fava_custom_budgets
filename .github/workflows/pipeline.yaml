@@ -1,0 +1,43 @@
+name: Test fava_budget plugin
+on:
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches: 
+      - master
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.9'
+      - name: Install python packages
+        run: pip install -r requirements.txt
+        working-directory: ./src/fava_budgets/
+      - name: Install Node & NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install NPM packages
+        run: npm install
+        working-directory: ./src/frontend/
+      - name: Run backend tests
+        run: python -m unittest discover
+        working-directory: ./src/fava_budgets/
+      - name: Generate API output for frontend tests
+        run: PYTHONPATH=../src/fava_budgets python api_exporter.py
+        working-directory: ./resources
+      - name: Run frontend tests
+        run: npm run test
+        working-directory: ./src/frontend/
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./src/frontend/
+      - name: Build python wheel
+        run: python -m build
+        working-directory: ./src/fava_budgets/

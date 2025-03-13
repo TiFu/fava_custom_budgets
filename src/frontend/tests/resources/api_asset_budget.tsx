@@ -1,22 +1,6 @@
 import { AssetBudget } from "../../src/data_model/AssetBudget";
 export const api: AssetBudget = {
     "budgetBalance": {
-        "saving-goal-3": {
-            "2023": {
-                "1": 0.25,
-                "2": 0.25,
-                "3": 0.25,
-                "4": 0.25,
-                "5": 0.25,
-                "6": 0.25,
-                "7": 0.25,
-                "8": 0.25,
-                "9": 0.25,
-                "10": 6000.25,
-                "11": 6000.25,
-                "12": 6000.25
-            }
-        },
         "saving-goal-2": {
             "2023": {
                 "1": 0.25,
@@ -64,82 +48,98 @@ export const api: AssetBudget = {
                 "11": 3000.25,
                 "12": 3000.25
             }
+        },
+        "saving-goal-3": {
+            "2023": {
+                "1": 0.25,
+                "2": 0.25,
+                "3": 0.25,
+                "4": 0.25,
+                "5": 0.25,
+                "6": 0.25,
+                "7": 0.25,
+                "8": 0.25,
+                "9": 0.25,
+                "10": 6000.25,
+                "11": 6000.25,
+                "12": 6000.25
+            }
         }
     },
     "accountBalance": {
         "Assets:Fixed-Deposits": {
             "2023": {
                 "1": {
-                    "saving-goal-3": 0.25,
                     "saving-goal-2": 0.25,
                     "actual": 0.75,
-                    "saving-goal-1": 0.25
+                    "saving-goal-1": 0.25,
+                    "saving-goal-3": 0.25
                 },
                 "2": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "3": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "4": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "5": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "6": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "7": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "8": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "9": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 0.25,
                     "actual": 0.75,
-                    "saving-goal-2": 0.25
+                    "saving-goal-2": 0.25,
+                    "saving-goal-1": 0.25
                 },
                 "10": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 3000.25,
                     "actual": 5000.75,
-                    "saving-goal-2": 2000.25
+                    "saving-goal-2": 2000.25,
+                    "saving-goal-1": 3000.25
                 },
                 "11": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 3000.25,
                     "actual": 5000.75,
-                    "saving-goal-2": 2000.25
+                    "saving-goal-2": 2000.25,
+                    "saving-goal-1": 3000.25
                 },
                 "12": {
                     "saving-goal-3": 0.25,
-                    "saving-goal-1": 3000.25,
                     "actual": 5000.75,
-                    "saving-goal-2": 2000.25
+                    "saving-goal-2": 2000.25,
+                    "saving-goal-1": 3000.25
                 }
             }
         },
@@ -249,9 +249,9 @@ export const api: AssetBudget = {
         }
     },
     "accounts": [
+        "Assets:Fixed-Deposits",
         "Assets:Foreign-currency-deposit",
-        "Assets:Brokerage",
-        "Assets:Fixed-Deposits"
+        "Assets:Brokerage"
     ],
     "budgets": {
         "saving-goal-3": {
