@@ -10,3 +10,12 @@
 # TODO
 
 * generate test data for TSX based on output of test_fava_plugin (or well create a small script that can be executed to update these; then maybe remove from tracking)
+
+
+# Release procedure
+
+* Update Frontend version
+* Update Backend version
+* Commit
+* Tag
+* Push tag
