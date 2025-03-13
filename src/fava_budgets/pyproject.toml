@@ -2,6 +2,10 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.package-data]
+"*" = ["*.html", "*.js", "*.txt"]
+
+
 [project]
 name = "fava-custom-budgets"
 version = "0.0.1"
