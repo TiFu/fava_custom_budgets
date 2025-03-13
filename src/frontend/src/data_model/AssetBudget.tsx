@@ -5,7 +5,7 @@ import { TelephoneMinusFill } from 'react-bootstrap-icons'
 export type AssetBalance = {actual: number} & {[key: string]: number}
 
 export interface AssetBudget {
-    account: Array<string>
+    accounts: Array<string>
     accountBalance: AccountMap<AssetBalance>
     budgetBalance: AccountMap<number>
     budgets: AccountMap<number>

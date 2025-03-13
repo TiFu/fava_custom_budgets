@@ -1,4 +1,5 @@
-export const api ={
+import { BudgetActualsSummary } from "../../src/data_model/IncomeExpenseBudget"
+export const api: BudgetActualsSummary = {
     "budgets": {
         "Income": {
             "Income": {

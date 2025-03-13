@@ -12,6 +12,7 @@ export class AssetBudgetService {
         this.budget.accountBalance
     }
 
+    // Argument is a budget, not an account
     getChart(budget: string, year: string, ytd: MonthType): BudgetChartData {
         let [budgetValues, actualValues] = this.getMonthlyBudgetValues(budget, year, ytd)
         let breakdown = this._getAccountBreakdown(budget, year, ytd)
@@ -181,7 +182,7 @@ export class AssetBudgetService {
     private _getBudgetByAccount(year: string, ytd: MonthType): {[key: string]: {[key: string]: number}} {
         let result: {[key: string]: {[key: string]: number}} = {}
         
-        for (let account of this.budget.account) {
+        for (let account of this.budget.accounts) {
             const accountSummary = this.budget.accountBalance[account][year][ytd]
             for (let budget in Object.keys(accountSummary)) {
                 if (budget == "actual")

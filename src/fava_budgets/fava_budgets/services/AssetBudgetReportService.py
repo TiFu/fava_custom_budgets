@@ -130,16 +130,21 @@ class AssetBudgetReportService:
 
         for account in self.accountBalances.getKeys():
             for year in range(minYear, maxYear+1):
+                budgetSets = set()
+                # Calculate all budgets in this year & use these to iterate
+                for month in range(1, 13):
+                    additional = self.accountBalances.getKeys(account, year, month)
+                    budgetSets.update(additional)
+
                 for month in range(1,13):
                     priorYear = year - 1 if month == 1 else year
                     priorMonth = 12 if month == 1 else month-1
 
                     # Get all budgets in prior Month + this month
-                    budgetSets = set(self.accountBalances.getKeys(account, year, month))
+                    #budgetSets = set(self.accountBalances.getKeys(account, year, month))
                     priorMonthBudgets = set(self.accountBalances.getKeys(account, priorYear, priorMonth))
-                    budgetSets = budgetSets.union(priorMonthBudgets)
-
-                    for budgetName in budgetSets:
+                    fullBudgetSets = budgetSets.union(priorMonthBudgets)
+                    for budgetName in fullBudgetSets:
                         priorBalance = self.accountBalances.get(account, priorYear, priorMonth, budgetName)
                         thisBalance = self.accountBalances.get(account, year, month, budgetName)
 
