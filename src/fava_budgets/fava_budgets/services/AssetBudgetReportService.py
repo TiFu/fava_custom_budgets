@@ -2,9 +2,13 @@ import math
 import collections
 from datetime import date
 import json
+import logging
 from fava_budgets.services.NestedDictionary import NestedDictionary
 BudgetError = collections.namedtuple("BudgetError", "source message entry")
 import decimal
+import sys
+import uuid
+
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, decimal.Decimal):
@@ -45,6 +49,12 @@ class AssetBudgetReportService:
         #print(self.accounts)
         return self.accounts
 
+    def _getPostingId(self, posting):
+        """Get or generate an ID for a posting. Creates a new UUID if no ID exists."""
+        id = posting.meta["id"] if "id" in posting.meta else str(uuid.uuid4())
+        posting.meta["id"] = id
+        return id
+
     def _processTransactions(self):
         errors = []
         minYear = 10000
@@ -62,7 +72,7 @@ class AssetBudgetReportService:
             month = entry.date.month
             
             # (5) Allow setting base currency (e.g. fetch from first operating currency)
-
+            idsSeen= set()
             for posting in transaction["budgetedPostings"]:
                 currency = posting.units.currency
                 val = posting.units.number 
@@ -74,7 +84,13 @@ class AssetBudgetReportService:
                 actualBalance = self.accountBalances.increase(val, account, year, month, "actual") 
                 #print("budgeted posting meta")
                 #print(posting.meta)
+                # Special case: IDs are duplicated in case a posting (automatically) matches multiple lots - so the ID helps with deduplication
+                #print(posting.meta)
+                id = self._getPostingId(posting)
+                if id in idsSeen:
+                    continue
 
+                idsSeen.add(id)
                 for key in posting.meta.keys():
                     if key.startswith("budget_"):
                         name = key.replace("budget_", "")
@@ -171,24 +187,47 @@ class AssetBudgetReportService:
         for transaction in self.transactions:
             #print(transaction)
             entry = transaction["entry"]
+            valuesById = {}
+            budgetById = {}
             for posting in transaction["budgetedPostings"]:
-                isValid, budget, value = self._isValidPosting(posting)
+                id = self._getPostingId(posting)
+                if id not in valuesById:
+                    valuesById[id] = 0
+                valuesById[id] += posting.units.number
+
+            for posting in transaction["budgetedPostings"]:
+                isValid = self._isValidPosting(posting, budgetById)
 
                 if isValid:
                     continue
-                
-                if math.isnan(budget):
+            
+            for id in valuesById.keys():
+                value = valuesById[id]
+                budget = budgetById[id]
+
+                diff = abs(value - budget)
+                if math.isnan(diff):
                     errors.append(BudgetError(entry.meta, "Posting for account " + str(posting.account) + " is for a budgeted account, but posting does not have any budget_ metadata", entry))
-                else:
+                elif diff > 10e-9:
+                    logging.error("Posting does not balance...")
+                    logging.error(posting)
+                    logging.error(posting.meta)
+                    print("", file=sys.stderr)
                     errors.append(BudgetError(entry.meta, "Budget for posting " + str(posting.account) + " does not balance: " + str(budget) + " budgeted vs. actual " + str(value), entry))
+                else: # All good - everything budgeted
+                    pass 
 
         return errors
-    def _isValidPosting(self, posting):
+    def _isValidPosting(self, posting, budgetById):
         meta = posting.meta
         balance = posting.units.number 
 
+        id = meta["id"]
+        if id in budgetById:
+            return True
         if meta is None:
-            return False, float("nan"), balance
+            budgetById[id] = float("nan")
+            return False#, float("nan"), balance
 
         totalBudget = 0
         for key in meta.keys():
@@ -200,5 +239,6 @@ class AssetBudgetReportService:
 
         convertedBalance = posting.units.number
         convertedActuals = totalBudget
+        budgetById[id] = totalBudget
         #print("Balance: " + str(balance) + " / totalBudget " + str(totalBudget))
-        return abs(totalBudget - balance) < 10e-9, convertedActuals, convertedBalance
+        return True#, convertedActuals, convertedBalance
