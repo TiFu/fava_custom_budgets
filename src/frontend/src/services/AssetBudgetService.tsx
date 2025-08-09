@@ -57,6 +57,8 @@ export class AssetBudgetService {
         let actuals = actualValues[ytd-1]
         let absoluteDiff = actuals - budget
         let relativeDiff = absoluteDiff / Math.max(1, budget)
+        let warn = relativeDiff > 0.05 && absoluteDiff < 100
+        console.log("Warn: ", warn, " budget: ", budget, " actuals: ", actuals, " absDiff: ", absoluteDiff, " relDiff: ", relativeDiff)
         let breakdownTotal = this._getAccountBreakdown(budgetName, year, ytd)
         let actualBreakdown: { [key:string]: number } = {}
 
@@ -67,7 +69,7 @@ export class AssetBudgetService {
         let output = {
             budget: budget,
             actuals: actuals,
-            warn: absoluteDiff < 0,
+            warn: warn,
             absoluteDiff: absoluteDiff,
             relativeDiff: relativeDiff,
             actualBreakdown: actualBreakdown

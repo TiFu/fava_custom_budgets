@@ -15,7 +15,7 @@ interface Props {
 class BudgetComparison extends React.Component<Props, {}> {
  
   render() {
-    let profitOverview = this.props.summary.getIncExpProfitBudget(this.props.year, this.props.ytdMonth)
+    let profitOverview = this.props.summary.getIncExpProfitSummary(this.props.year, this.props.ytdMonth)
     let incomeOverview = this.props.summary.getIncomeComparison(this.props.year, this.props.ytdMonth)
     let expenseOverview = this.props.summary.getExpenseComparison(this.props.year, this.props.ytdMonth)
     

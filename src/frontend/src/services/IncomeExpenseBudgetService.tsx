@@ -211,10 +211,10 @@ export class IncomeExpenseBudgetService {
             let actuals = this.actuals.getAnnualSum(a, year, ytd)
             let diff = actuals - budget
             let divisor = budget
-            if (Math.abs(divisor) < 10e-9) {
-                divisor = 1
-            }
             let diffRel = diff / divisor
+            if (Math.abs(divisor) < 10e-9) {
+                diffRel = 0
+            }
             
             let children = this.accounts.getChildren(a)
             let breakdown: {[key: string]: number} = {}
@@ -222,9 +222,9 @@ export class IncomeExpenseBudgetService {
                 let n = c
                 breakdown[n] = this.actuals.getAnnualSum(n, year, ytd)
             })
-            let warn = diffRel > 0.05 || diff > 250
-            if (invertForIncome)
-                warn = diffRel < -0.05 || diff < -250
+            let warn = Math.abs(diffRel) > 0.05 && Math.abs(diff) > 250
+            //if (invertForIncome)
+            //    warn = Math.abs(diffRel) < -0.05 && diff < -250
             
 
             values[a] = {

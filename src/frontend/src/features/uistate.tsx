@@ -10,8 +10,8 @@ interface UIState {
 
 const initialState: UIState = {
     selectedTab: "spending",
-    showYtD: false,
-    ytdMonth: 12
+    showYtD: true,
+    ytdMonth: Math.max(new Date().getMonth() + 1 as MonthType - 1, 1) as MonthType
 }
 
 //export const fetchBudget = createAsyncThunk('budget/fetchBudget', async () => {
