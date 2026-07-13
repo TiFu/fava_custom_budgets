@@ -72,3 +72,32 @@ class TestAssetBudgetReportService(unittest.TestCase):
     def test_getBudgetedAccounts(self):
         accs = self.reportService.getBudgetedAccounts()
         self.assertEqual(3, len(accs))
+
+    def test_getAnnualBudgetBalances(self):
+        balances = self.reportService.getAnnualBudgetBalances()
+
+        for entry in ["actual", "saving-goal-1", "saving-goal-2", "saving-goal-3"]:
+            self.assertTrue(entry in balances, "Expected " + entry + " to be in annual budget balances but was not present in " + str(balances))
+
+    def test_getAnnualAccountBalances(self):
+        # 2023 is the only year with transactions in the fixture, so the within-year accrual
+        # matches the lifetime-cumulative values checked in test_getAccountBalances.
+        accountBalances = self.reportService.getAnnualAccountBalances()
+
+        for account in ["Assets:Fixed-Deposits", "Assets:Brokerage", "Assets:Foreign-currency-deposit"]:
+            self.assertTrue(account in accountBalances, "Expected " + str(account) + " to be present in " + str(accountBalances.keys()))
+
+        account = "Assets:Fixed-Deposits"
+        balances = [5000.75, 3000.25, 2000.25]
+        goals = ["actual", "saving-goal-1", "saving-goal-2"]
+        self._checkAccountBalance(accountBalances, account, balances, goals)
+
+        account = "Assets:Brokerage"
+        balances = [1000, 1000]
+        goals = ["actual", "saving-goal-3"]
+        self._checkAccountBalance(accountBalances, account, balances, goals)
+
+    def test_getAnnualBudgets(self):
+        annualBudgets = self.reportService.getAnnualBudgets()
+
+        self.assertEqual(300, annualBudgets.getValue("saving-goal-1", 2023, 1))

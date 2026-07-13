@@ -72,7 +72,10 @@ class BudgetFavaPlugin(FavaExtensionBase):
             "budgetBalance": self.assetBudgetReportService.getBudgetBalances(),
             "accountBalance": self.assetBudgetReportService.getAccountBalances(),
             "accounts": self.assetBudgetReportService.getBudgetedAccounts(),
-            "budgets": self.assetBudgetReportService.getBudgets().getSummary()
+            "budgets": self.assetBudgetReportService.getBudgets().getSummary(),
+            "annualBudgetBalance": self.assetBudgetReportService.getAnnualBudgetBalances(),
+            "annualAccountBalance": self.assetBudgetReportService.getAnnualAccountBalances(),
+            "annualBudgets": self.assetBudgetReportService.getAnnualBudgets().getSummary()
         }
         return result
 

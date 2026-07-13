@@ -26,6 +26,9 @@ class BudgetNavBar extends React.Component<ExpenseIncomeMapOverviewProps, {}> {
         <Nav.Link eventKey="asset-budget">Asset Budget  {this.props.year}</Nav.Link>
       </Nav.Item>
       <Nav.Item>
+        <Nav.Link eventKey="asset-contributions">Annual Contributions {this.props.year}</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
         <Nav.Link eventKey="asset-account">Asset Accounts {this.props.year}</Nav.Link>
       </Nav.Item>
 

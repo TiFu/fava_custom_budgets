@@ -87,4 +87,69 @@ describe("AssetBudgetService", () => {
             }
         }
     })
+
+    test("getAnnualChart", () => {
+        // saving-goal-3 has a 3% appreciation directive - the annual chart must show the flat,
+        // non-compounded monthly contribution plan (400/month) instead of the compounded lifetime plan.
+        const budget = "saving-goal-3"
+        let chart = service.getAnnualChart(budget, "2023", 12)
+
+        expect(chart.chartName).toBe(budget)
+        expect(chart.actuals).toEqual([
+            0,    0,    0,    0,
+            0,    0,    0,    0,
+            0, 6000, 6000, 6000
+        ])
+
+        expect(chart.budget).toEqual([
+            400,  800,  1200,
+            1600, 2000, 2400,
+            2800, 3200, 3600,
+            4000, 4400, 4800
+        ])
+
+        expect(chart.minYAxis).toEqual(0)
+        expect(chart.maxYAxis).toEqual(6600)
+
+        // Unlike the lifetime chart, the annual chart omits the per-account breakdown so that
+        // mixed-sign contributions within a year don't render as conflicting stacked segments.
+        expect(chart.actualBreakdown).toEqual([])
+    })
+
+    test("getAnnualBudgetActualComparisonSummary", () => {
+        let summary = service.getAnnualBudgetActualComparisonSummary("2023", 12)
+
+        expect(summary.lineItems.length).toEqual(3)
+
+        let expected: any = {
+            // Unlike the lifetime comparison, saving-goal-3's annual plan (4800) is not
+            // compounded with appreciation, so actuals now exceed the plan instead of trailing it.
+            'saving-goal-3': {
+                budget: 4800,
+                actuals: 6000,
+                absoluteDiff: 1200,
+                relativeDiff: 0.25
+            },
+            'saving-goal-1': {
+                budget: 3650,
+                actuals: 3000,
+                absoluteDiff: -650,
+                relativeDiff: -0.1780821917808219
+            },
+            'saving-goal-2': {
+                budget: 2000,
+                actuals: 2000,
+                absoluteDiff: 0,
+                relativeDiff: 0
+            }
+        }
+
+        for (let budget of ["saving-goal-1", "saving-goal-2", "saving-goal-3"]) {
+            const exp = expected[budget]
+            const res = summary.comparison[budget]
+            for (let key in exp) {
+                expect((res as any)[key]).toEqual(exp[key])
+            }
+        }
+    })
 })

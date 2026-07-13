@@ -24,6 +24,7 @@ class AssetBudgetReportService:
         self.priceDatabase = priceDatabase
         self.accounts = assetBudgetInformation["accounts"]
         self.budget = assetBudgetInformation["budget"]
+        self.annualBudget = assetBudgetInformation["annualBudget"]
         self.transactions = assetBudgetInformation["budgetedTransactions"] # { entry: Entry, postings: [postings]}
         self.accountBalances = NestedDictionary(0)
         self.budgetBalances = NestedDictionary(0)
@@ -37,13 +38,24 @@ class AssetBudgetReportService:
     def getBudgetBalances(self):
         return self.budgetBalances.getDict()
 
-    def getAccountBalances(self): 
+    def getAccountBalances(self):
         #print(self.accountBalances)
         return self.accountBalancesConverted.getDict()
-    
+
     def getBudgets(self):
         #print(self.budget)
         return self.budget
+
+    def getAnnualBudgetBalances(self):
+        # Accrued contributions within each year (resets every January), as opposed to
+        # getBudgetBalances() which is cumulative since inception.
+        return self.annualBudgetBalances.getDict()
+
+    def getAnnualAccountBalances(self):
+        return self.annualAccountBalancesConverted.getDict()
+
+    def getAnnualBudgets(self):
+        return self.annualBudget
 
     def getBudgetedAccounts(self):
         #print(self.accounts)
@@ -81,7 +93,8 @@ class AssetBudgetReportService:
                 # TODO: add check whether already exists & differs from currency -> if so, add error
                 self.accountCurrencies[account] = currency
 
-                actualBalance = self.accountBalances.increase(val, account, year, month, "actual") 
+                actualBalance = self.accountBalances.increase(val, account, year, month, "actual")
+                self.rawAccountBalances.increase(val, account, year, month, "actual")
                 #print("budgeted posting meta")
                 #print(posting.meta)
                 # Special case: IDs are duplicated in case a posting (automatically) matches multiple lots - so the ID helps with deduplication
@@ -94,8 +107,9 @@ class AssetBudgetReportService:
                 for key in posting.meta.keys():
                     if key.startswith("budget_"):
                         name = key.replace("budget_", "")
-                        budgetVal = posting.meta[key] 
+                        budgetVal = posting.meta[key]
                         self.accountBalances.increase(budgetVal, account, year, month, name)
+                        self.rawAccountBalances.increase(budgetVal, account, year, month, name)
 
                         budgetBalanceTracker.increase(budgetVal, name)
                         budgetBalance = budgetBalanceTracker.get(name)
@@ -108,6 +122,9 @@ class AssetBudgetReportService:
     def _calculateBalances(self):
         self.accountBalances = NestedDictionary(0)
         self.accountBalancesConverted = NestedDictionary(0)
+        self.rawAccountBalances = NestedDictionary(0)
+        self.annualAccountBalances = NestedDictionary(0)
+        self.annualAccountBalancesConverted = NestedDictionary(0)
 
         self.accountCurrencies = {}
         self.convertedAccountBalances = NestedDictionary(0)
@@ -120,8 +137,14 @@ class AssetBudgetReportService:
         accumulationErrors = self._accumulateAccountBalances(minYear, maxYear)
         errors.extend(accumulationErrors)
 
+        annualAccumulationErrors = self._accumulateAnnualAccountBalances(minYear, maxYear)
+        errors.extend(annualAccumulationErrors)
+
         budgetErrors = self._calculateBudgetBalances(minYear, maxYear)
         errors.extend(budgetErrors)
+
+        annualBudgetErrors = self._calculateAnnualBudgetBalances(minYear, maxYear)
+        errors.extend(annualBudgetErrors)
 
         #print(json.dumps(self.accountBalancesConverted.getDict(), indent=2, cls=DecimalEncoder))
         #print("Done calculating balances")
@@ -138,6 +161,20 @@ class AssetBudgetReportService:
                     for budget in self.accountBalancesConverted.getKeys(account, year, month):
                         val = self.accountBalancesConverted.get(account, year, month, budget)
                         self.budgetBalances.increase(val, budget, year, month)
+
+        return errors
+
+    def _calculateAnnualBudgetBalances(self, minYear, maxYear):
+        errors = []
+        # Same aggregation as _calculateBudgetBalances, but sourced from the within-year
+        # (non-cumulative-across-years) account balances.
+        self.annualBudgetBalances = NestedDictionary(0)
+        for account in self.rawAccountBalances.getKeys():
+            for year in range(minYear, maxYear+1):
+                for month in range(1, 12+1):
+                    for budget in self.annualAccountBalancesConverted.getKeys(account, year, month):
+                        val = self.annualAccountBalancesConverted.get(account, year, month, budget)
+                        self.annualBudgetBalances.increase(val, budget, year, month)
 
         return errors
 
@@ -171,6 +208,30 @@ class AssetBudgetReportService:
                         self.accountBalancesConverted.set(newBalanceConverted, account, year, month, budgetName)
                         # Convert balance
                         # TODO: fetch account currency, convert currency
+        return errors
+
+    def _accumulateAnnualAccountBalances(self, minYear, maxYear):
+        errors = []
+
+        for account in self.rawAccountBalances.getKeys():
+            for year in range(minYear, maxYear+1):
+                budgetSets = set()
+                for month in range(1, 13):
+                    budgetSets.update(self.rawAccountBalances.getKeys(account, year, month))
+
+                runningBalance = {}
+                for month in range(1, 13):
+                    for budgetName in budgetSets:
+                        # Reset every January - no carry-over from the prior year.
+                        priorBalance = 0 if month == 1 else runningBalance[budgetName]
+                        thisBalance = self.rawAccountBalances.get(account, year, month, budgetName)
+
+                        newBalance = priorBalance + thisBalance
+                        runningBalance[budgetName] = newBalance
+                        self.annualAccountBalances.set(newBalance, account, year, month, budgetName)
+
+                        newBalanceConverted = self._convertBalance(account, date(year, month, 28), newBalance)
+                        self.annualAccountBalancesConverted.set(newBalanceConverted, account, year, month, budgetName)
         return errors
 
     def _convertBalance(self, account, date, balance):

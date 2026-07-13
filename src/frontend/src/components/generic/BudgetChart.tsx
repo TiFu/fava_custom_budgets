@@ -34,10 +34,10 @@ let options = {
     column: {
         stacking: 'normal',
         dataLabels: {
-            enabled: true
+            enabled: false
         }
     }
-  },  
+  },
   series: [
     {   name: "Series 1",
         type: "column",

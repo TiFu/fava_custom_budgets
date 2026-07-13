@@ -14,14 +14,30 @@ export class AssetBudgetService {
 
     // Argument is a budget, not an account
     getChart(budget: string, year: string, ytd: MonthType): BudgetChartData {
-        let [budgetValues, actualValues] = this.getMonthlyBudgetValues(budget, year, ytd)
-        let breakdown = this._getAccountBreakdown(budget, year, ytd)
+        return this._getChart(this.budget.budgets, this.budget.budgetBalance, this.budget.accountBalance, budget, year, ytd, true)
+    }
+
+    // Per-account breakdown is omitted here: within a single year, an account's contribution
+    // to a goal can legitimately swing negative (e.g. a withdrawal) and positive in other
+    // periods. Highcharts' normal stacking renders negative and positive series in separate
+    // stacks above/below the zero line instead of netting them, which looks like conflicting
+    // signals rather than a single running total. The lifetime view doesn't have this problem
+    // since balances there only accumulate, so it keeps the account breakdown.
+    getAnnualChart(budget: string, year: string, ytd: MonthType): BudgetChartData {
+        return this._getChart(this.budget.annualBudgets, this.budget.annualBudgetBalance, this.budget.annualAccountBalance, budget, year, ytd, false)
+    }
+
+    private _getChart(budgets: AccountMap<number>, budgetBalance: AccountMap<number>, accountBalance: AccountMap<AssetBalance>, budget: string, year: string, ytd: MonthType, includeBreakdown: boolean): BudgetChartData {
+        let [budgetValues, actualValues] = this.getMonthlyBudgetValues(budgets, budgetBalance, budget, year, ytd)
         let actualBreakdown: Array<{name: string, data: Array<number> }> = []
-        for (let acc in breakdown) {
-            actualBreakdown.push({
-                name: acc,
-                data: breakdown[acc]
-            })
+        if (includeBreakdown) {
+            let breakdown = this._getAccountBreakdown(accountBalance, budget, year, ytd)
+            for (let acc in breakdown) {
+                actualBreakdown.push({
+                    name: acc,
+                    data: breakdown[acc]
+                })
+            }
         }
 
         let max = Math.max(...budgetValues, ...actualValues)
@@ -37,11 +53,19 @@ export class AssetBudgetService {
     }
 
     getBudgetActualComparisonSummary(year: string, ytd:MonthType): BudgetActualComparisonSummary {
+        return this._getBudgetActualComparisonSummary(this.budget.budgets, this.budget.budgetBalance, this.budget.accountBalance, year, ytd)
+    }
+
+    getAnnualBudgetActualComparisonSummary(year: string, ytd:MonthType): BudgetActualComparisonSummary {
+        return this._getBudgetActualComparisonSummary(this.budget.annualBudgets, this.budget.annualBudgetBalance, this.budget.annualAccountBalance, year, ytd)
+    }
+
+    private _getBudgetActualComparisonSummary(budgets: AccountMap<number>, budgetBalance: AccountMap<number>, accountBalance: AccountMap<AssetBalance>, year: string, ytd:MonthType): BudgetActualComparisonSummary {
         let budgetNames = this.getBudgetNames()
         let data: {[key: string]: BudgetActualComparisonData} = {}
-        
+
         budgetNames.forEach((budgetName) => {
-            data[budgetName] = this.getBudgetActualComparison(budgetName, year, ytd)
+            data[budgetName] = this._getBudgetActualComparison(budgets, budgetBalance, accountBalance, budgetName, year, ytd)
         })
 
         return {
@@ -51,7 +75,15 @@ export class AssetBudgetService {
     }
 
     getBudgetActualComparison(budgetName: string, year: string, ytd: MonthType): BudgetActualComparisonData {
-        let [budgetValues, actualValues] = this.getMonthlyBudgetValues(budgetName, year, ytd)
+        return this._getBudgetActualComparison(this.budget.budgets, this.budget.budgetBalance, this.budget.accountBalance, budgetName, year, ytd)
+    }
+
+    getAnnualBudgetActualComparison(budgetName: string, year: string, ytd: MonthType): BudgetActualComparisonData {
+        return this._getBudgetActualComparison(this.budget.annualBudgets, this.budget.annualBudgetBalance, this.budget.annualAccountBalance, budgetName, year, ytd)
+    }
+
+    private _getBudgetActualComparison(budgets: AccountMap<number>, budgetBalance: AccountMap<number>, accountBalance: AccountMap<AssetBalance>, budgetName: string, year: string, ytd: MonthType): BudgetActualComparisonData {
+        let [budgetValues, actualValues] = this.getMonthlyBudgetValues(budgets, budgetBalance, budgetName, year, ytd)
 
         let budget = budgetValues[ytd-1]
         let actuals = actualValues[ytd-1]
@@ -59,13 +91,13 @@ export class AssetBudgetService {
         let relativeDiff = absoluteDiff / Math.max(1, budget)
         let warn = relativeDiff > 0.05 && absoluteDiff < 100
         console.log("Warn: ", warn, " budget: ", budget, " actuals: ", actuals, " absDiff: ", absoluteDiff, " relDiff: ", relativeDiff)
-        let breakdownTotal = this._getAccountBreakdown(budgetName, year, ytd)
+        let breakdownTotal = this._getAccountBreakdown(accountBalance, budgetName, year, ytd)
         let actualBreakdown: { [key:string]: number } = {}
 
         for (let arr in breakdownTotal) {
             actualBreakdown[arr] = breakdownTotal[arr][ytd-1]
         }
-        
+
         let output = {
             budget: budget,
             actuals: actuals,
@@ -79,8 +111,16 @@ export class AssetBudgetService {
     }
 
     getBreakdownTableByBudget(account: string, year: string, ytd: MonthType): BreakdownTableData {
-        let [actualValues, budgetBreakdown] = this._getBudgetBreakdown(account, year, ytd)
-        
+        return this._getBreakdownTableByBudget(this.budget.accountBalance, account, year, ytd)
+    }
+
+    getAnnualBreakdownTableByBudget(account: string, year: string, ytd: MonthType): BreakdownTableData {
+        return this._getBreakdownTableByBudget(this.budget.annualAccountBalance, account, year, ytd)
+    }
+
+    private _getBreakdownTableByBudget(accountBalance: AccountMap<AssetBalance>, account: string, year: string, ytd: MonthType): BreakdownTableData {
+        let [actualValues, budgetBreakdown] = this._getBudgetBreakdown(accountBalance, account, year, ytd)
+
         let output = {
             budget: undefined,
             actual: actualValues,
@@ -91,9 +131,17 @@ export class AssetBudgetService {
     }
 
     getBreakdownTableByAccount(budget: string, year: string, ytd: MonthType): BreakdownTableData {
-        let [budgetValues, actualValues] = this.getMonthlyBudgetValues(budget, year, ytd)
+        return this._getBreakdownTableByAccount(this.budget.budgets, this.budget.budgetBalance, this.budget.accountBalance, budget, year, ytd)
+    }
 
-        let accountBreakdown = this._getAccountBreakdown(budget, year, ytd)
+    getAnnualBreakdownTableByAccount(budget: string, year: string, ytd: MonthType): BreakdownTableData {
+        return this._getBreakdownTableByAccount(this.budget.annualBudgets, this.budget.annualBudgetBalance, this.budget.annualAccountBalance, budget, year, ytd)
+    }
+
+    private _getBreakdownTableByAccount(budgets: AccountMap<number>, budgetBalance: AccountMap<number>, accountBalance: AccountMap<AssetBalance>, budget: string, year: string, ytd: MonthType): BreakdownTableData {
+        let [budgetValues, actualValues] = this.getMonthlyBudgetValues(budgets, budgetBalance, budget, year, ytd)
+
+        let accountBreakdown = this._getAccountBreakdown(accountBalance, budget, year, ytd)
 
         let output = {
             budget: budgetValues,
@@ -108,16 +156,16 @@ export class AssetBudgetService {
     getBudgetNames(): Array<string> {
         return Object.keys(this.budget.budgets)
     }
-    
-    private _getBudgetBreakdown(account: string, year: string, ytd: MonthType): [Array<number>, AccountBreakdown] {
+
+    private _getBudgetBreakdown(accountBalance: AccountMap<AssetBalance>, account: string, year: string, ytd: MonthType): [Array<number>, AccountBreakdown] {
 
         let output: AccountBreakdown = {}
-        
-        let accountBalance = this.budget.accountBalance[account]
-        if (!(year in accountBalance))
+
+        let balanceForAccount = accountBalance[account]
+        if (!(year in balanceForAccount))
             return [[], output]
 
-        let yearMap = accountBalance[year]
+        let yearMap = balanceForAccount[year]
         let actuals: Array<number> = []
 
         for (let i = 1; i <= ytd; i++) {
@@ -126,7 +174,7 @@ export class AssetBudgetService {
             for (let budget in balance) {
                 if (budget == "actual")
                     continue
-                    
+
                 if (!(budget in output)) {
                     output[budget] = []
                 }
@@ -139,15 +187,15 @@ export class AssetBudgetService {
     }
 
 
-    private _getAccountBreakdown(budget: string, year: string, ytd: MonthType): AccountBreakdown {
+    private _getAccountBreakdown(accountBalance: AccountMap<AssetBalance>, budget: string, year: string, ytd: MonthType): AccountBreakdown {
 
         let output: AccountBreakdown = {}
 
-        for (let account of Object.keys(this.budget.accountBalance)) {
-            let yearMap = this.budget.accountBalance[account]
+        for (let account of Object.keys(accountBalance)) {
+            let yearMap = accountBalance[account]
             if (!(year in yearMap))
                 continue
-            
+
             let budgetMap = yearMap[year]
 
             let mm = this.convertMonthMapToNumber(budgetMap, budget)
@@ -174,10 +222,10 @@ export class AssetBudgetService {
         return output as MonthMap<number>
     }
     // Returns budget, actuals
-    private getMonthlyBudgetValues(budget: string, year: string, ytd: MonthType): [Array<number>, Array<number>] {
+    private getMonthlyBudgetValues(budgets: AccountMap<number>, budgetBalance: AccountMap<number>, budget: string, year: string, ytd: MonthType): [Array<number>, Array<number>] {
         return [
-            this._extractMonthlyValues(this.budget.budgets, budget, year, ytd), 
-            this._extractMonthlyValues(this.budget.budgetBalance, budget, year, ytd)
+            this._extractMonthlyValues(budgets, budget, year, ytd),
+            this._extractMonthlyValues(budgetBalance, budget, year, ytd)
         ]
     }
 

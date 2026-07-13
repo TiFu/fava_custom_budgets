@@ -9,6 +9,11 @@ export interface AssetBudget {
     accountBalance: AccountMap<AssetBalance>
     budgetBalance: AccountMap<number>
     budgets: AccountMap<number>
+    // Same shapes as their lifetime-cumulative counterparts above, but accrued within a
+    // single year (resets every January) instead of since inception.
+    annualAccountBalance: AccountMap<AssetBalance>
+    annualBudgetBalance: AccountMap<number>
+    annualBudgets: AccountMap<number>
 }
 
 

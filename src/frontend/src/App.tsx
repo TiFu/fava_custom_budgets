@@ -14,6 +14,7 @@ import BudgetComparison from './components/tabs/BudgetComparison';
 import AssetBudgetOverview from './components/tabs/AssetBudgetOverview';
 import BudgetOverview from './components/tabs/BudgetOverview'
 import AssetAccountOverview from './components/tabs/AssetAccountOverview'
+import AssetContributionOverview from './components/tabs/AssetContributionOverview'
 function mapStateToProps(state: RootState) {
   return state
 }
@@ -48,6 +49,10 @@ class App extends React.Component<PropState, {}>  {
     return <AssetAccountOverview ytd={this.props.uislice.ytdMonth} overview={this.props.budget.assetBudgets} year={this.props.filters.selectedYear} />
   }
 
+  getAssetContributionOverview() {
+    return <AssetContributionOverview ytd={this.props.uislice.ytdMonth} overview={this.props.budget.assetBudgets} year={this.props.filters.selectedYear} />
+  }
+
 
   render() {
     console.log("App: ", this.props.budget.budgets)
@@ -65,8 +70,11 @@ class App extends React.Component<PropState, {}>  {
       case "asset-budget":
         displayComponent = this.getOverviewAssetBudget()
         break;
-      case "asset-account": 
+      case "asset-account":
         displayComponent = this.getAssetAccountOverview()
+        break;
+      case "asset-contributions":
+        displayComponent = this.getAssetContributionOverview()
         break;
     }
 

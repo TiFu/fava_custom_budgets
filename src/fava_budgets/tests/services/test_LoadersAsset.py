@@ -95,6 +95,38 @@ class TestAssetLoader(unittest.TestCase):
         self._checkBudget(budget, "saving-goal-2", 2023, 6, 2000)
         self._checkBudget(budget, "saving-goal-2", 2023, 8, 2000)
 
+    def test_asset_budget_values_annual(self):
+        result = self._loadSimpleCase()
+
+        self.assertTrue("annualBudget" in result)
+        annualBudget = result["annualBudget"]
+        # 2023 is the first year of contributions for this goal, so annual accrual matches
+        # the lifetime-cumulative values from test_asset_budget_values.
+        self._checkBudget(annualBudget, "saving-goal-1", 2023, 1, 300)
+        self._checkBudget(annualBudget, "saving-goal-1", 2023, 12, 12*300+50)
+
+    def test_asset_budget_appreciation_annual(self):
+        result = self._loadSimpleCase()
+
+        self.assertTrue("annualBudget" in result)
+        annualBudget = result["annualBudget"]
+        # Unlike test_asset_budget_appreciation, the annual calculation must NOT compound
+        # the 3% appreciation across years - it's a flat monthly accrual of new contributions.
+        self._checkBudget(annualBudget, "saving-goal-3", 2022, 12, 2000)
+        self._checkBudget(annualBudget, "saving-goal-3", 2023, 1, 400)
+        self._checkBudget(annualBudget, "saving-goal-3", 2023, 2, 800)
+        self._checkBudget(annualBudget, "saving-goal-3", 2023, 3, 1200)
+        self._checkBudget(annualBudget, "saving-goal-3", 2023, 12, 4800)
+
+    def test_asset_budget_once_annual(self):
+        result = self._loadSimpleCase()
+
+        self.assertTrue("annualBudget" in result)
+        annualBudget = result["annualBudget"]
+        self._checkBudget(annualBudget, "saving-goal-2", 2023, 1, 0)
+        self._checkBudget(annualBudget, "saving-goal-2", 2023, 6, 2000)
+        self._checkBudget(annualBudget, "saving-goal-2", 2023, 8, 2000)
+
 
     def _checkBudget(self, budget, name, year, month, expected):
         expected = decimal.Decimal(expected)

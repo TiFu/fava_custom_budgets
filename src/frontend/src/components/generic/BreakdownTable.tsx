@@ -60,7 +60,7 @@ class BreakdownTable extends React.Component<Props, {}> {
       header = null
     }
 
-    return <div>{header}<table style={{width: "100%"}}>
+    return <div>{header}<table className="table table-striped table-hover" style={{width: "100%"}}>
         <thead>
         <tr>{this.prepareHeaders()}</tr>
         </thead>

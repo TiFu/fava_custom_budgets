@@ -108,12 +108,13 @@ class AssetBudgetLoader:
     def loadLedger(self, ledgerHelper):
 
         budgetedAccounts, accountErrors = self._loadAccounts(ledgerHelper)
-        budgetEntries, budgetDetails, errors = self._loadBudgets(ledgerHelper)
+        budgetEntries, annualBudgetEntries, budgetDetails, errors = self._loadBudgets(ledgerHelper)
         budgetedTransactions = self._loadTransactions(ledgerHelper, budgetedAccounts)
         #print(budgetedTransactions)
         finalErrors = accountErrors + errors
         return {
             "budget": CostSummary(budgetEntries),
+            "annualBudget": CostSummary(annualBudgetEntries),
             "budgetDetails": budgetDetails,
             "accounts": budgetedAccounts,
             "errors": finalErrors,
@@ -257,11 +258,12 @@ class AssetBudgetLoader:
 
         # Add asset_budget_percentage
         entries = self._accumulateBudgets(minYear, maxYear)
-        return entries, self.budgetDetails.getDict(), errors
+        annualEntries = self._accumulateAnnualBudgets(minYear, maxYear)
+        return entries, annualEntries, self.budgetDetails.getDict(), errors
 
     def _accumulateBudgets(self, minYear, maxYear):
         entries = []
-        
+
         for budget in self.budgetDetails.getKeys():
             priorSum = Decimal(0)
             for year in range(minYear, maxYear + 1):
@@ -274,11 +276,37 @@ class AssetBudgetLoader:
                     monthSum = Decimal(0)
                     for entryName in monthEntryKeys:
                         monthSum += self.budgetDetails.get(budget, year, i, entryName)
-                    
+
                     priorSum = priorSum * appreciation + monthSum
                     monthlyValues.append([i, priorSum])
 
-                entries.append({ 
+                entries.append({
+                    "account": budget,
+                    "year": year,
+                    "values": monthlyValues
+                })
+        return entries
+
+    def _accumulateAnnualBudgets(self, minYear, maxYear):
+        # Same monthly deltas as _accumulateBudgets, but the running sum resets to 0 every
+        # January (no carry-over across years) and appreciation is not applied, since this
+        # is meant to capture only new contributions made within a given year.
+        entries = []
+
+        for budget in self.budgetDetails.getKeys():
+            for year in range(minYear, maxYear + 1):
+                yearSum = Decimal(0)
+                monthlyValues = []
+                for i in range(1, 13):
+                    monthEntryKeys = self.budgetDetails.getKeys(budget, year, i)
+                    monthSum = Decimal(0)
+                    for entryName in monthEntryKeys:
+                        monthSum += self.budgetDetails.get(budget, year, i, entryName)
+
+                    yearSum += monthSum
+                    monthlyValues.append([i, yearSum])
+
+                entries.append({
                     "account": budget,
                     "year": year,
                     "values": monthlyValues

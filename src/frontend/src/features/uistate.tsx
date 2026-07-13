@@ -1,7 +1,7 @@
 import {PayloadAction, createSlice } from '@reduxjs/toolkit'
 import { MonthType } from '../util'
 
-export type TabKey = "spending" | "overview-spending-budget" | "asset-budget" | "asset-account"
+export type TabKey = "spending" | "overview-spending-budget" | "asset-budget" | "asset-account" | "asset-contributions"
 interface UIState {
     selectedTab: TabKey,
     showYtD: boolean,
